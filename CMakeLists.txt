@@ -13,21 +13,40 @@ endif ()
 add_library(baphy STATIC)
 add_library(baphy::baphy ALIAS baphy)
 
-target_sources(baphy
+target_sources(
+        baphy
+        
         PRIVATE
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/baphy/baphy.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/baphy/runner.cpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/baphy/window.cpp"
+        #[=[ [[[cog
+        from pathlib import Path
+        for item in sorted(Path("src").rglob("*"), key=lambda e: e.as_posix()):
+            if item.as_posix().startswith("src/stb"):
+                continue
+            if item.is_file():
+                cog.outl(f"\"{item.as_posix()}\"")
+        ]]] ]=]
+        "src/baphy/baphy.cpp"
+        "src/baphy/log.cpp"
+        "src/baphy/runner.cpp"
+        "src/baphy/window.cpp"
+        # [[[end]]]
 
         PUBLIC
         FILE_SET headers
         TYPE HEADERS
-        BASE_DIRS
-        "${CMAKE_CURRENT_SOURCE_DIR}/include"
+        BASE_DIRS "include"
         FILES
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/baphy/baphy.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/baphy/runner.hpp"
-        "${CMAKE_CURRENT_SOURCE_DIR}/include/baphy/window.hpp"
+        #[=[ #[[[cog
+        from pathlib import Path
+        for item in sorted(Path("include").rglob("*"), key=lambda e: e.as_posix()):
+            if item.is_file():
+                cog.outl(f"\"{item.as_posix()}\"")
+        ]]] ]=]
+        "include/baphy/baphy.hpp"
+        "include/baphy/log.hpp"
+        "include/baphy/runner.hpp"
+        "include/baphy/window.hpp"
+        # [[[end]]]
 )
 
 target_compile_features(baphy PRIVATE cxx_std_23)
@@ -42,10 +61,10 @@ else ()
     target_compile_options(baphy PRIVATE -Wall -Wextra -Wpedantic)
 endif ()
 
-target_compile_definitions(baphy PRIVATE GLFW_INCLUDE_NONE)
+# expose to library user so they also don't include anything
+target_compile_definitions(baphy PUBLIC GLFW_INCLUDE_NONE)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_thirdparty.cmake")
-
 target_link_libraries(baphy PUBLIC baphy::baphy_thirdparty)
 
 add_subdirectory(examples)

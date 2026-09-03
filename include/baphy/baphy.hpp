@@ -5,6 +5,7 @@
 #define BAPHY_VERSION_MINOR 1
 #define BAPHY_VERSION_PATCH 0
 
+#include "baphy/log.hpp"
 #include "baphy/runner.hpp"
 #include "baphy/window.hpp"
 

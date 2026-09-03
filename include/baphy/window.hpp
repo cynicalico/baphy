@@ -1,6 +1,7 @@
 #ifndef BAPHY_WINDOW_HPP
 #define BAPHY_WINDOW_HPP
 
+#include <GLFW/glfw3.h>
 #include <memory>
 
 namespace baphy {
@@ -15,12 +16,13 @@ public:
   Window(Window &&) noexcept;
   Window &operator=(Window &&) noexcept;
 
+  GLFWwindow *raw() const;
+
   bool should_close() const;
   void swap_buffers();
 
 private:
-  struct Impl;
-  std::unique_ptr<Impl> impl_;
+  GLFWwindow *window_;
 };
 } // namespace baphy
 
