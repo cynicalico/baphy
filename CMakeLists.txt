@@ -16,6 +16,7 @@ add_library(baphy::baphy ALIAS baphy)
 target_sources(baphy
         PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/src/baphy/baphy.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/baphy/runner.cpp"
 
         PUBLIC
         FILE_SET headers
@@ -24,6 +25,7 @@ target_sources(baphy
         "${CMAKE_CURRENT_SOURCE_DIR}/include"
         FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/include/baphy/baphy.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/baphy/runner.hpp"
 )
 
 target_compile_features(baphy PRIVATE cxx_std_23)

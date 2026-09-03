@@ -5,6 +5,8 @@
 #define BAPHY_VERSION_MINOR 1
 #define BAPHY_VERSION_PATCH 0
 
+#include "baphy/runner.hpp"
+
 namespace baphy {
 const char *version();
 }
