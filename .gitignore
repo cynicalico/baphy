@@ -2,8 +2,9 @@
 .cache/
 
 bin/
-
 CMakeUserPresets.json
 
 .idea/
 .zed/
+
+.DS_Store
