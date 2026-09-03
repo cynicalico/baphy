@@ -17,6 +17,7 @@ target_sources(baphy
         PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/src/baphy/baphy.cpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/baphy/runner.cpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/baphy/window.cpp"
 
         PUBLIC
         FILE_SET headers
@@ -26,6 +27,7 @@ target_sources(baphy
         FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/include/baphy/baphy.hpp"
         "${CMAKE_CURRENT_SOURCE_DIR}/include/baphy/runner.hpp"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include/baphy/window.hpp"
 )
 
 target_compile_features(baphy PRIVATE cxx_std_23)

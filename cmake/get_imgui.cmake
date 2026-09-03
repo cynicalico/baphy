@@ -1,4 +1,4 @@
-CPMAddPackage(URI "gh:ocornut/imgui@1.92.9b" DOWNLOAD_ONLY YES)
+CPMAddPackage(URI "gh:ocornut/imgui@1.92.9b-docking" DOWNLOAD_ONLY YES)
 
 if (imgui_ADDED) 
     add_library(imgui STATIC)

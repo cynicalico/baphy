@@ -11,13 +11,20 @@ baphy::Runner::Runner() {
     throw std::runtime_error(
         fmt::format("Failed to initialize GLFW! Error {}: {}", code, description));
   }
+
+  window = std::make_unique<Window>();
 }
 
 baphy::Runner::~Runner() {
+  window.reset();
   glfwTerminate();
 }
 
 baphy::Runner &baphy::Runner::instance() {
   static Runner instance;
   return instance;
+}
+
+void baphy::Runner::poll_events() {
+  glfwPollEvents();
 }
