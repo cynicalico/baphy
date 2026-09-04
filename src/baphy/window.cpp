@@ -8,13 +8,14 @@ baphy::Window::Window() {
   if (!window_) {
     const char *description;
     auto code = glfwGetError(&description);
-    throw std::runtime_error(
-        fmt::format("Failed to create GLFW window! Error {}: {}", code, description));
+    throw std::runtime_error(fmt::format(
+        "Failed to create GLFW window! Error {}: {}", code, description));
   }
 }
 
 baphy::Window::~Window() {
-  if (window_) glfwDestroyWindow(window_);
+  if (window_)
+    glfwDestroyWindow(window_);
 }
 
 baphy::Window::Window(Window &&other) noexcept

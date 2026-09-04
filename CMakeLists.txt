@@ -1,8 +1,18 @@
 cmake_minimum_required(VERSION 3.29 FATAL_ERROR)
 project(baphy LANGUAGES CXX C)
 
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(BAPHY_LOG_LEVEL "SPDLOG_LEVEL_INFO" CACHE STRING "Compile-time spdlog active level used in release builds")
+set_property(CACHE BAPHY_LOG_LEVEL PROPERTY STRINGS
+        SPDLOG_LEVEL_TRACE
+        SPDLOG_LEVEL_DEBUG
+        SPDLOG_LEVEL_INFO
+        SPDLOG_LEVEL_WARN
+        SPDLOG_LEVEL_ERROR
+        SPDLOG_LEVEL_CRITICAL
+        SPDLOG_LEVEL_OFF
+)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${CMAKE_CURRENT_SOURCE_DIR}/bin/debug")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${CMAKE_CURRENT_SOURCE_DIR}/bin/release")
 
@@ -15,7 +25,7 @@ add_library(baphy::baphy ALIAS baphy)
 
 target_sources(
         baphy
-        
+
         PRIVATE
         #[=[ [[[cog
         from pathlib import Path
@@ -28,8 +38,10 @@ target_sources(
         "src/baphy/baphy.cpp"
         "src/baphy/log.cpp"
         "src/baphy/runner.cpp"
+        "src/baphy/util/envvars.cpp"
+        "src/baphy/util/time.cpp"
         "src/baphy/window.cpp"
-        # [[[end]]]
+        # [[[end]]] (sum: n7tvrRSUV/)
 
         PUBLIC
         FILE_SET headers
@@ -45,8 +57,11 @@ target_sources(
         "include/baphy/baphy.hpp"
         "include/baphy/log.hpp"
         "include/baphy/runner.hpp"
+        "include/baphy/util/envvars.hpp"
+        "include/baphy/util/platform.hpp"
+        "include/baphy/util/time.hpp"
         "include/baphy/window.hpp"
-        # [[[end]]]
+        # [[[end]]] (sum: nwzSgq1z2z)
 )
 
 target_compile_features(baphy PRIVATE cxx_std_23)
@@ -61,8 +76,10 @@ else ()
     target_compile_options(baphy PRIVATE -Wall -Wextra -Wpedantic)
 endif ()
 
-# expose to library user so they also don't include anything
-target_compile_definitions(baphy PUBLIC GLFW_INCLUDE_NONE)
+target_compile_definitions(baphy PUBLIC
+        GLFW_INCLUDE_NONE
+        SPDLOG_ACTIVE_LEVEL=${BAPHY_LOG_LEVEL}
+)
 
 include("${CMAKE_CURRENT_SOURCE_DIR}/cmake/get_thirdparty.cmake")
 target_link_libraries(baphy PUBLIC baphy::baphy_thirdparty)

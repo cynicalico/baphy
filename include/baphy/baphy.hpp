@@ -13,4 +13,7 @@ namespace baphy {
 const char *version();
 }
 
+#include <fmt/format.h>
+#include <glad/gl.h>
+
 #endif // BAPHY_BAPHY_HPP

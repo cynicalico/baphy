@@ -1,6 +1,7 @@
 #ifndef BAPHY_RUNNER_HPP
 #define BAPHY_RUNNER_HPP
 
+#include <imgui.h>
 #include <memory>
 #include "baphy/window.hpp"
 
@@ -20,6 +21,8 @@ public:
   void poll_events();
 
 private:
+  ImGuiContext *imgui_ctx_{nullptr};
+
   Runner();
   ~Runner();
 };

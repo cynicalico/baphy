@@ -4,13 +4,14 @@ Language: Cpp
 BasedOnStyle: clang-format
 AccessModifierOffset: -2
 AllowShortCaseExpressionOnASingleLine: true
-AllowShortBlocksOnASingleLine: Always
-AllowShortCaseLabelsOnASingleLine: true
+AllowShortBlocksOnASingleLine: Empty
+AllowShortCaseLabelsOnASingleLine: false
 AllowShortCompoundRequirementOnASingleLine: true
-AllowShortEnumsOnASingleLine: true
+AllowShortEnumsOnASingleLine: false
 AllowShortFunctionsOnASingleLine: Inline
-AllowShortIfStatementsOnASingleLine: AllIfsAndElse
-AllowShortLoopsOnASingleLine: true
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+AllowShortNamespacesOnASingleLine: false
 AllowShortLambdasOnASingleLine: Empty
 AlignAfterOpenBracket: true
 AlignConsecutiveAssignments: false
@@ -41,7 +42,7 @@ BraceWrapping:
 BreakBeforeBraces: Attach
 BreakConstructorInitializers: BeforeColon
 BreakConstructorInitializersBeforeComma: false
-ColumnLimit: 100
+ColumnLimit: 80
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 ContinuationIndentWidth: 4
 IncludeCategories:

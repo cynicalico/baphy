@@ -2,7 +2,6 @@
 #define BAPHY_WINDOW_HPP
 
 #include <GLFW/glfw3.h>
-#include <memory>
 
 namespace baphy {
 class Window {
@@ -16,9 +15,9 @@ public:
   Window(Window &&) noexcept;
   Window &operator=(Window &&) noexcept;
 
-  GLFWwindow *raw() const;
+  [[nodiscard]] GLFWwindow *raw() const;
 
-  bool should_close() const;
+  [[nodiscard]] bool should_close() const;
   void swap_buffers();
 
 private:
