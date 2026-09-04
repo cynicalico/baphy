@@ -4,7 +4,7 @@
 #include <fmt/format.h>
 #include <string>
 #include <string_view>
-#include "baphy/event/keyboard.hpp"
+#include "baphy/event/common.hpp"
 
 namespace baphy {
 constexpr std::string_view to_string(const Key key) {
@@ -254,39 +254,62 @@ constexpr std::string_view to_string(const Key key) {
   return "Unknown";
 }
 
-constexpr std::string_view to_string(const KeyAction action) {
+constexpr std::string_view to_string(const Button button) {
+  switch (button) {
+  case Button::Left:
+    return "Left";
+  case Button::Right:
+    return "Right";
+  case Button::Middle:
+    return "Middle";
+  case Button::N4:
+    return "4";
+  case Button::N5:
+    return "5";
+  case Button::N6:
+    return "6";
+  case Button::N7:
+    return "7";
+  case Button::N8:
+    return "8";
+  }
+
+  return "Unknown";
+}
+
+constexpr std::string_view to_string(const Action action) {
   switch (action) {
-  case KeyAction::Release:
+  case Action::Release:
     return "Release";
-  case KeyAction::Press:
+  case Action::Press:
     return "Press";
-  case KeyAction::Repeat:
+  case Action::Repeat:
     return "Repeat";
   }
 
   return "Unknown";
 }
 
-constexpr std::string to_string(const Mod mods) {
-  if (mods == Mod::None)
+constexpr std::string to_string(const ModFlags mods) {
+  if (mods == ModFlags::None)
     return "None";
 
   std::string result;
 
-  auto append = [&](Mod mod, std::string_view name) {
-    if ((mods & mod) != Mod::None) {
+  auto append = [&](ModFlags mod, std::string_view name) {
+    if ((mods & mod) != ModFlags::None) {
       if (!result.empty())
         result += '|';
       result += name;
     }
   };
 
-  append(Mod::Shift, "Shift");
-  append(Mod::Control, "Control");
-  append(Mod::Alt, "Alt");
-  append(Mod::Super, "Super");
-  append(Mod::Caps, "Caps");
-  append(Mod::NumLock, "NumLock");
+  append(ModFlags::Shift, "Shift");
+  append(ModFlags::Control, "Control");
+  append(ModFlags::Alt, "Alt");
+  append(ModFlags::Super, "Super");
+  append(ModFlags::Caps, "Caps");
+  append(ModFlags::NumLock, "NumLock");
 
   return result.empty() ? "Unknown" : result;
 }
@@ -295,24 +318,31 @@ constexpr std::string to_string(const Mod mods) {
 template<>
 struct fmt::formatter<baphy::Key> : formatter<std::string_view> {
   template<typename FormatContext>
-  auto format(baphy::Key key, FormatContext &ctx) const {
+  auto format(const baphy::Key key, FormatContext &ctx) const {
     return formatter<std::string_view>::format(baphy::to_string(key), ctx);
   }
 };
 
 template<>
-struct fmt::formatter<baphy::KeyAction> : formatter<std::string_view> {
+struct fmt::formatter<baphy::Button> : formatter<std::string_view> {
   template<typename FormatContext>
-  auto format(baphy::KeyAction action, FormatContext &ctx) const {
-    return fmt::formatter<std::string_view>::format(
-        baphy::to_string(action), ctx);
+  auto format(const baphy::Button button, FormatContext &ctx) const {
+    return formatter<std::string_view>::format(baphy::to_string(button), ctx);
   }
 };
 
 template<>
-struct fmt::formatter<baphy::Mod> : formatter<std::string_view> {
+struct fmt::formatter<baphy::Action> : formatter<std::string_view> {
   template<typename FormatContext>
-  auto format(baphy::Mod mods, FormatContext &ctx) const {
+  auto format(const baphy::Action action, FormatContext &ctx) const {
+    return formatter<std::string_view>::format(baphy::to_string(action), ctx);
+  }
+};
+
+template<>
+struct fmt::formatter<baphy::ModFlags> : formatter<std::string_view> {
+  template<typename FormatContext>
+  auto format(const baphy::ModFlags mods, FormatContext &ctx) const {
     const auto value = baphy::to_string(mods);
     return formatter<std::string_view>::format(value, ctx);
   }

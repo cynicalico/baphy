@@ -20,6 +20,7 @@ public:
   [[nodiscard]] GLFWwindow *handle() const;
 
   [[nodiscard]] bool should_close() const;
+  void set_should_close(bool should_close);
 
   [[nodiscard]] glm::ivec2 size() const;
   [[nodiscard]] int w() const;

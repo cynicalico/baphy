@@ -35,6 +35,10 @@ bool baphy::Window::should_close() const {
   return glfwWindowShouldClose(handle_) == GLFW_TRUE;
 }
 
+void baphy::Window::set_should_close(const bool should_close) {
+  glfwSetWindowShouldClose(handle_, should_close ? GLFW_TRUE : GLFW_FALSE);
+}
+
 glm::ivec2 baphy::Window::size() const {
   int w;
   int h;

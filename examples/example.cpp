@@ -1,5 +1,5 @@
 #include "baphy/baphy.hpp"
-#include "baphy/event/keyboard.hpp"
+#include "baphy/event/key.hpp"
 
 static void run() {
   BAPHY_LOG_DEBUG("baphy v{}", baphy::version());
@@ -8,12 +8,10 @@ static void run() {
   auto &w = r.window;
 
   const auto id = r.nexus->acquire_id();
-  r.nexus->subscribe<baphy::KeyEvent>(id, [](const auto *p) {
-    BAPHY_LOG_INFO("Key event: key={}, scancode={}, action={}, mods={}",
-                   p->key,
-                   p->scancode,
-                   p->action,
-                   p->mods);
+
+  r.nexus->subscribe<baphy::KeyEvent>(id, [&w](const auto *p) {
+    if (p->key == baphy::Key::Escape && p->action == baphy::Action::Press)
+      w->set_should_close(true);
   });
 
   while (!w->should_close()) {

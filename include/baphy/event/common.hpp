@@ -1,5 +1,5 @@
-#ifndef BAPHY_EVENT_KEYBOARD_HPP
-#define BAPHY_EVENT_KEYBOARD_HPP
+#ifndef BAPHY_EVENT_COMMON_HPP
+#define BAPHY_EVENT_COMMON_HPP
 
 #include <GLFW/glfw3.h>
 #include "baphy/util/enum_class_bitops.hpp"
@@ -128,13 +128,24 @@ enum class Key {
   Menu = GLFW_KEY_MENU,
 };
 
-enum class KeyAction {
+enum class Button {
+  Left = GLFW_MOUSE_BUTTON_LEFT,
+  Right = GLFW_MOUSE_BUTTON_RIGHT,
+  Middle = GLFW_MOUSE_BUTTON_MIDDLE,
+  N4 = GLFW_MOUSE_BUTTON_4,
+  N5 = GLFW_MOUSE_BUTTON_5,
+  N6 = GLFW_MOUSE_BUTTON_6,
+  N7 = GLFW_MOUSE_BUTTON_7,
+  N8 = GLFW_MOUSE_BUTTON_8,
+};
+
+enum class Action {
   Release = GLFW_RELEASE,
   Press = GLFW_PRESS,
   Repeat = GLFW_REPEAT
 };
 
-enum class Mod {
+enum class ModFlags {
   None = 0,
   Shift = GLFW_MOD_SHIFT,
   Control = GLFW_MOD_CONTROL,
@@ -143,15 +154,8 @@ enum class Mod {
   Caps = GLFW_MOD_CAPS_LOCK,
   NumLock = GLFW_MOD_NUM_LOCK,
 };
-
-struct KeyEvent {
-  Key key;
-  int scancode;
-  KeyAction action;
-  Mod mods;
-};
 } // namespace baphy
 
-ENUM_CLASS_ENABLE_BITOPS(baphy::Mod);
+ENUM_CLASS_ENABLE_BITOPS(baphy::ModFlags);
 
-#endif // BAPHY_EVENT_KEYBOARD_HPP
+#endif // BAPHY_EVENT_COMMON_HPP
