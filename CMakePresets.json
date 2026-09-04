@@ -15,7 +15,7 @@
         "CMAKE_BUILD_TYPE": "Debug",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "BUILD_SHARED_LIBS": "OFF",
-        "CPM_SOURCE_CACHE": "${sourceDir}/.cache/debug/CPM"
+        "CPM_SOURCE_CACHE": "${sourceDir}/.cache/CPM"
       }
     },
     {
@@ -27,7 +27,7 @@
         "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "BUILD_SHARED_LIBS": "OFF",
-        "CPM_SOURCE_CACHE": "${sourceDir}/.cache/release/CPM"
+        "CPM_SOURCE_CACHE": "${sourceDir}/.cache/CPM"
       }
     }
   ]

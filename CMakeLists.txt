@@ -55,13 +55,17 @@ target_sources(
                 cog.outl(f"\"{item.as_posix()}\"")
         ]]] ]=]
         "include/baphy/baphy.hpp"
+        "include/baphy/event/all.hpp"
+        "include/baphy/event/formatters.hpp"
+        "include/baphy/event/keyboard.hpp"
         "include/baphy/log.hpp"
         "include/baphy/runner.hpp"
+        "include/baphy/util/enum_class_bitops.hpp"
         "include/baphy/util/envvars.hpp"
         "include/baphy/util/platform.hpp"
         "include/baphy/util/time.hpp"
         "include/baphy/window.hpp"
-        # [[[end]]] (sum: nwzSgq1z2z)
+        # [[[end]]] (sum: mtq4UDatKR)
 )
 
 target_compile_features(baphy PRIVATE cxx_std_23)

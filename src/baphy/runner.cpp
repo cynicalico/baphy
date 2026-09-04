@@ -6,7 +6,17 @@
 #include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
 #include <stdexcept>
+#include "baphy/event/all.hpp"
 #include "baphy/log.hpp"
+
+static void
+key_callback(GLFWwindow *, int key, int scancode, int action, int mods) {
+  baphy::Runner::instance().nexus->publish<baphy::KeyEvent>(
+      static_cast<baphy::Key>(key),
+      scancode,
+      static_cast<baphy::KeyAction>(action),
+      static_cast<baphy::Mod>(mods));
+}
 
 baphy::Runner::Runner() {
   if (!glfwInit()) {
@@ -27,8 +37,10 @@ baphy::Runner::Runner() {
   glfwWindowHint(GLFW_CONTEXT_DEBUG, GLFW_TRUE);
 #endif
   window = std::make_unique<Window>();
-  glfwMakeContextCurrent(window->raw());
 
+  glfwSetKeyCallback(window->handle(), key_callback);
+
+  glfwMakeContextCurrent(window->handle());
   if (gladLoadGL(glfwGetProcAddress) == 0)
     throw std::runtime_error("Failed to initialize GLAD!");
   BAPHY_LOG_DEBUG("OpenGL v{}",
@@ -46,11 +58,13 @@ baphy::Runner::Runner() {
   ImGui::StyleColorsDark();
   ImGui::GetIO().IniFilename = nullptr;
 
-  if (!ImGui_ImplGlfw_InitForOpenGL(window->raw(), false))
+  if (!ImGui_ImplGlfw_InitForOpenGL(window->handle(), false))
     throw std::runtime_error("Failed to initialize ImGui GLFW backend!");
   if (!ImGui_ImplOpenGL3_Init("#version 410"))
     throw std::runtime_error("Failed to initialize ImGui OpenGL3 backend!");
   BAPHY_LOG_DEBUG("ImGui v{}", ImGui::GetVersion());
+
+  nexus = std::make_unique<nexus::Nexus>();
 }
 
 baphy::Runner::~Runner() {

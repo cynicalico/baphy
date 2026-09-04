@@ -2,6 +2,8 @@
 #define BAPHY_WINDOW_HPP
 
 #include <GLFW/glfw3.h>
+#include <glm/mat4x4.hpp>
+#include <glm/vec2.hpp>
 
 namespace baphy {
 class Window {
@@ -15,13 +17,20 @@ public:
   Window(Window &&) noexcept;
   Window &operator=(Window &&) noexcept;
 
-  [[nodiscard]] GLFWwindow *raw() const;
+  [[nodiscard]] GLFWwindow *handle() const;
 
   [[nodiscard]] bool should_close() const;
+
+  [[nodiscard]] glm::ivec2 size() const;
+  [[nodiscard]] int w() const;
+  [[nodiscard]] int h() const;
+
+  [[nodiscard]] glm::mat4 ortho_projection() const;
+
   void swap_buffers();
 
 private:
-  GLFWwindow *window_;
+  GLFWwindow *handle_;
 };
 } // namespace baphy
 
