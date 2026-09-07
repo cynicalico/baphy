@@ -4,11 +4,18 @@
 #include <GLFW/glfw3.h>
 #include <glm/mat4x4.hpp>
 #include <glm/vec2.hpp>
+#include <string>
 
 namespace baphy {
+struct WindowOpts {
+  std::string title{"baphy Application"};
+  glm::ivec2 size{800, 600};
+  bool resizable{false};
+};
+
 class Window {
 public:
-  Window();
+  Window(const WindowOpts &opts);
   ~Window();
 
   Window(const Window &) = delete;

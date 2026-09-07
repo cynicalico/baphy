@@ -5,6 +5,7 @@
 #define BAPHY_VERSION_MINOR 1
 #define BAPHY_VERSION_PATCH 0
 
+#include "baphy/application.hpp"
 #include "baphy/event/all.hpp"
 #include "baphy/event/formatters.hpp"
 #include "baphy/log.hpp"

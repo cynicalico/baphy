@@ -20,6 +20,22 @@ key_callback(GLFWwindow *, int key, int scancode, int action, int mods);
 static void scroll_callback(GLFWwindow *, double xoffset, double yoffset);
 
 baphy::Runner::Runner() {
+  nexus = std::make_unique<nexus::Nexus>();
+}
+
+baphy::Runner::~Runner() {
+  ImGui_ImplOpenGL3_Shutdown();
+  ImGui_ImplGlfw_Shutdown();
+  ImGui::DestroyContext(imgui_ctx_);
+  imgui_ctx_ = nullptr;
+
+  window.reset();
+  glfwTerminate();
+
+  nexus.reset();
+}
+
+void baphy::Runner::open_window_(const WindowOpts &opts) {
   if (!glfwInit()) {
     const char *description;
     auto code = glfwGetError(&description);
@@ -37,7 +53,7 @@ baphy::Runner::Runner() {
 #ifndef NDEBUG
   glfwWindowHint(GLFW_CONTEXT_DEBUG, GLFW_TRUE);
 #endif
-  window = std::make_unique<Window>();
+  window = std::make_unique<Window>(opts);
 
   glfwSetCharCallback(window->handle(), char_callback);
   glfwSetCursorPosCallback(window->handle(), cursor_pos_callback);
@@ -56,7 +72,9 @@ baphy::Runner::Runner() {
                   reinterpret_cast<const char *>(glGetString(GL_RENDERER)));
   BAPHY_LOG_DEBUG("OpenGL vendor: {}",
                   reinterpret_cast<const char *>(glGetString(GL_VENDOR)));
+}
 
+void baphy::Runner::initialize_imgui_() {
   IMGUI_CHECKVERSION();
   imgui_ctx_ = ImGui::CreateContext();
   if (!imgui_ctx_)
@@ -70,13 +88,6 @@ baphy::Runner::Runner() {
   if (!ImGui_ImplOpenGL3_Init("#version 410"))
     throw std::runtime_error("Failed to initialize ImGui OpenGL3 backend!");
   BAPHY_LOG_DEBUG("ImGui v{}", ImGui::GetVersion());
-
-  nexus = std::make_unique<nexus::Nexus>();
-}
-
-baphy::Runner::~Runner() {
-  window.reset();
-  glfwTerminate();
 }
 
 baphy::Runner &baphy::Runner::instance() {
@@ -84,8 +95,15 @@ baphy::Runner &baphy::Runner::instance() {
   return instance;
 }
 
-void baphy::Runner::poll_events() {
-  glfwPollEvents();
+void baphy::Runner::run_() {
+  while (!window->should_close()) {
+    glfwPollEvents();
+    app_->update(0.0);
+
+    app_->draw();
+
+    window->swap_buffers();
+  }
 }
 
 void char_callback(GLFWwindow *, unsigned int codepoint) {

@@ -4,8 +4,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <utility>
 
-baphy::Window::Window() {
-  handle_ = glfwCreateWindow(800, 600, "example", nullptr, nullptr);
+baphy::Window::Window(const WindowOpts &opts) {
+  glfwWindowHint(GLFW_RESIZABLE, opts.resizable ? GLFW_TRUE : GLFW_FALSE);
+
+  handle_ = glfwCreateWindow(
+      opts.size.x, opts.size.y, opts.title.c_str(), nullptr, nullptr);
   if (!handle_) {
     const char *description;
     auto code = glfwGetError(&description);

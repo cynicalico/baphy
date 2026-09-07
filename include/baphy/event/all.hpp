@@ -2,6 +2,7 @@
 #define BAPHY_EVENT_ALL_HPP
 
 #include "baphy/event/char.hpp"
+#include "baphy/event/common.hpp"
 #include "baphy/event/cursor_enter.hpp"
 #include "baphy/event/cursor_pos.hpp"
 #include "baphy/event/drop.hpp"

@@ -35,13 +35,14 @@ target_sources(
             if item.is_file():
                 cog.outl(f"\"{item.as_posix()}\"")
         ]]] ]=]
+        "src/baphy/application.cpp"
         "src/baphy/baphy.cpp"
         "src/baphy/log.cpp"
         "src/baphy/runner.cpp"
         "src/baphy/util/envvars.cpp"
         "src/baphy/util/time.cpp"
         "src/baphy/window.cpp"
-        # [[[end]]] (sum: n7tvrRSUV/)
+        # [[[end]]] (sum: 7671KTav//)
 
         PUBLIC
         FILE_SET headers
@@ -54,6 +55,7 @@ target_sources(
             if item.is_file():
                 cog.outl(f"\"{item.as_posix()}\"")
         ]]] ]=]
+        "include/baphy/application.hpp"
         "include/baphy/baphy.hpp"
         "include/baphy/event/all.hpp"
         "include/baphy/event/char.hpp"
@@ -72,7 +74,7 @@ target_sources(
         "include/baphy/util/platform.hpp"
         "include/baphy/util/time.hpp"
         "include/baphy/window.hpp"
-        # [[[end]]] (sum: MGBHE4Bfmg)
+        # [[[end]]] (sum: r0G1MWPHUj)
 )
 
 target_compile_features(baphy PRIVATE cxx_std_23)
