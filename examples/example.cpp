@@ -2,18 +2,20 @@
 
 class Example : public baphy::Application {
 public:
-  Example() {
-    runner.nexus->subscribe<baphy::KeyEvent>(callback_id_, [&](const auto *p) {
-      if (p->key == baphy::Key::Escape && p->action == baphy::Action::Release)
-        baphy::Runner::instance().window->set_should_close(true);
-    });
-  }
+  Example() = default;
 
   void update(double dt) override {}
 
   void draw() override {
     glClearColor(0.2f, 0.1f, 0.4f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+  }
+
+  void key_callback(const baphy::Key key,
+                    const baphy::Action action,
+                    const baphy::ModFlags mods) override {
+    if (key == baphy::Key::Escape && action == baphy::Action::Release)
+      runner.window->set_should_close(true);
   }
 };
 

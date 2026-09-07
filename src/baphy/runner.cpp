@@ -9,14 +9,14 @@
 #include "baphy/event/all.hpp"
 #include "baphy/log.hpp"
 
-static void char_callback(GLFWwindow *, unsigned int codepoint);
-static void cursor_enter_callback(GLFWwindow *, int entered);
-static void cursor_pos_callback(GLFWwindow *, double xpos, double ypos);
+static void char_callback(GLFWwindow *window, unsigned int codepoint);
+static void cursor_enter_callback(GLFWwindow *window, int entered);
+static void cursor_pos_callback(GLFWwindow *window, double xpos, double ypos);
 static void drop_callback(GLFWwindow *, int count, const char **paths);
 static void
-mouse_button_callback(GLFWwindow *, int button, int action, int mods);
+mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
 static void
-key_callback(GLFWwindow *, int key, int scancode, int action, int mods);
+key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
 static void scroll_callback(GLFWwindow *, double xoffset, double yoffset);
 
 baphy::Runner::Runner() {
@@ -106,17 +106,29 @@ void baphy::Runner::run_() {
   }
 }
 
-void char_callback(GLFWwindow *, unsigned int codepoint) {
-  baphy::Runner::instance().nexus->publish<baphy::CharEvent>(codepoint);
+void char_callback(GLFWwindow *window, unsigned int codepoint) {
+  ImGui_ImplGlfw_CharCallback(window, codepoint);
+
+  if (!ImGui::GetIO().WantCaptureKeyboard)
+    baphy::Runner::instance().nexus->publish<baphy::CharEvent>(codepoint);
 }
 
-void cursor_enter_callback(GLFWwindow *, const int entered) {
-  baphy::Runner::instance().nexus->publish<baphy::CursorEnterEvent>(
-      entered != 0);
+void cursor_enter_callback(GLFWwindow *window, const int entered) {
+  ImGui_ImplGlfw_CursorEnterCallback(window, entered);
+
+  if (!ImGui::GetIO().WantCaptureMouse) {
+    baphy::Runner::instance().nexus->publish<baphy::CursorEnterEvent>(
+        entered != 0);
+  }
 }
 
-void cursor_pos_callback(GLFWwindow *, const double xpos, const double ypos) {
-  baphy::Runner::instance().nexus->publish<baphy::CursorPosEvent>(xpos, ypos);
+void cursor_pos_callback(GLFWwindow *window,
+                         const double xpos,
+                         const double ypos) {
+  ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
+
+  if (!ImGui::GetIO().WantCaptureMouse)
+    baphy::Runner::instance().nexus->publish<baphy::CursorPosEvent>(xpos, ypos);
 }
 
 void drop_callback(GLFWwindow *, const int count, const char **paths) {
@@ -129,27 +141,41 @@ void drop_callback(GLFWwindow *, const int count, const char **paths) {
       std::move(owned_paths));
 }
 
-static void mouse_button_callback(
-    GLFWwindow *, const int button, const int action, const int mods) {
-  baphy::Runner::instance().nexus->publish<baphy::MouseButtonEvent>(
-      static_cast<baphy::Button>(button),
-      static_cast<baphy::Action>(action),
-      static_cast<baphy::ModFlags>(mods));
+void mouse_button_callback(
+    GLFWwindow *window, const int button, const int action, const int mods) {
+  ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+
+  if (!ImGui::GetIO().WantCaptureMouse) {
+    baphy::Runner::instance().nexus->publish<baphy::MouseButtonEvent>(
+        static_cast<baphy::Button>(button),
+        static_cast<baphy::Action>(action),
+        static_cast<baphy::ModFlags>(mods));
+  }
 }
 
-static void key_callback(GLFWwindow *,
+static void key_callback(GLFWwindow *window,
                          const int key,
                          const int scancode,
                          const int action,
                          const int mods) {
-  baphy::Runner::instance().nexus->publish<baphy::KeyEvent>(
-      static_cast<baphy::Key>(key),
-      scancode,
-      static_cast<baphy::Action>(action),
-      static_cast<baphy::ModFlags>(mods));
+  ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+
+  if (!ImGui::GetIO().WantCaptureKeyboard) {
+    baphy::Runner::instance().nexus->publish<baphy::KeyEvent>(
+        static_cast<baphy::Key>(key),
+        scancode,
+        static_cast<baphy::Action>(action),
+        static_cast<baphy::ModFlags>(mods));
+  }
 }
 
-void scroll_callback(GLFWwindow *, const double xoffset, const double yoffset) {
-  baphy::Runner::instance().nexus->publish<baphy::ScrollEvent>(
-      xoffset, yoffset);
+void scroll_callback(GLFWwindow *window,
+                     const double xoffset,
+                     const double yoffset) {
+  ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
+
+  if (!ImGui::GetIO().WantCaptureMouse) {
+    baphy::Runner::instance().nexus->publish<baphy::ScrollEvent>(
+        xoffset, yoffset);
+  }
 }
