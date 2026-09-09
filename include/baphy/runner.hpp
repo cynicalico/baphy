@@ -14,13 +14,14 @@ public:
   std::unique_ptr<nexus::Nexus> nexus{nullptr};
   std::unique_ptr<Window> window{nullptr};
 
+  Runner();
+  ~Runner();
+
   Runner(const Runner &) = delete;
   Runner &operator=(const Runner &) = delete;
 
   Runner(Runner &&) noexcept = delete;
   Runner &operator=(Runner &&) noexcept = delete;
-
-  static Runner &instance();
 
   template<typename T>
     requires std::is_base_of_v<Application, T>
@@ -29,9 +30,6 @@ public:
 private:
   ImGuiContext *imgui_ctx_{nullptr};
   Application *app_{nullptr};
-
-  Runner();
-  ~Runner();
 
   void open_window_(const WindowOpts &opts);
   void initialize_imgui_();
@@ -45,7 +43,7 @@ void Runner::run(const WindowOpts &opts) {
   open_window_(opts);
   initialize_imgui_();
 
-  app_ = new T();
+  app_ = new T(*this);
 
   run_();
 

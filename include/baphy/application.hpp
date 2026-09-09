@@ -11,7 +11,7 @@ class Application {
 public:
   Runner &runner;
 
-  Application();
+  Application(Runner &runner);
 
   virtual ~Application();
 
@@ -41,7 +41,9 @@ public:
   virtual void scroll_callback(double dx, double dy);
 
 protected:
-  nexus::ID callback_id_;
+  nexus::ID callback_id_{};
+
+  void subscribe_callbacks_();
 };
 } // namespace baphy
 

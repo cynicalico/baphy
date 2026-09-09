@@ -2,8 +2,34 @@
 #include "baphy/event/all.hpp"
 #include "baphy/runner.hpp"
 
-baphy::Application::Application()
-    : runner{Runner::instance()} {
+baphy::Application::Application(Runner &runner)
+    : runner{runner} {
+  subscribe_callbacks_();
+}
+
+baphy::Application::~Application() {
+  runner.nexus->release_id(callback_id_);
+}
+
+void baphy::Application::update(double) {}
+
+void baphy::Application::draw() {}
+
+void baphy::Application::char_callback(unsigned int) {}
+
+void baphy::Application::cursor_enter_callback(bool) {}
+
+void baphy::Application::cursor_pos_callback(double, double) {}
+
+void baphy::Application::drop_callback(const std::vector<std::string> &) {}
+
+void baphy::Application::mouse_button_callback(Button, Action, ModFlags) {}
+
+void baphy::Application::key_callback(Key, Action, ModFlags) {}
+
+void baphy::Application::scroll_callback(double, double) {}
+
+void baphy::Application::subscribe_callbacks_() {
   callback_id_ = runner.nexus->acquire_id();
 
   runner.nexus->subscribe<CharEvent>(callback_id_, [&](const CharEvent *p) {
@@ -37,25 +63,3 @@ baphy::Application::Application()
     scroll_callback(p->dx, p->dy);
   });
 }
-
-baphy::Application::~Application() {
-  runner.nexus->release_id(callback_id_);
-}
-
-void baphy::Application::update(double) {}
-
-void baphy::Application::draw() {}
-
-void baphy::Application::char_callback(unsigned int) {}
-
-void baphy::Application::cursor_enter_callback(bool) {}
-
-void baphy::Application::cursor_pos_callback(double, double) {}
-
-void baphy::Application::drop_callback(const std::vector<std::string> &) {}
-
-void baphy::Application::mouse_button_callback(Button, Action, ModFlags) {}
-
-void baphy::Application::key_callback(Key, Action, ModFlags) {}
-
-void baphy::Application::scroll_callback(double, double) {}

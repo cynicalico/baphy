@@ -1,14 +1,19 @@
 #include "baphy/baphy.hpp"
 
-class Example : public baphy::Application {
+class Example final : public baphy::Application {
 public:
-  Example() = default;
+  explicit Example(baphy::Runner &runner)
+      : Application(runner) {}
 
   void update(double dt) override {}
 
   void draw() override {
     glClearColor(0.2f, 0.1f, 0.4f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    if (ImGui::Begin("hello"))
+      ImGui::Text("Hello, world!");
+    ImGui::End();
   }
 
   void key_callback(const baphy::Key key,
@@ -24,7 +29,8 @@ int main(int, char *[]) {
       .title = "Example", .size = {1280, 720}, .resizable = false};
 
   try {
-    baphy::Runner::instance().run<Example>(window_opts);
+    baphy::Runner r{};
+    r.run<Example>(window_opts);
   } catch (std::runtime_error &e) {
     BAPHY_LOG_ERROR("Runtime error: {}", e.what());
     return 1;

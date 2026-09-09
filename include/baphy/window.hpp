@@ -15,7 +15,7 @@ struct WindowOpts {
 
 class Window {
 public:
-  Window(const WindowOpts &opts);
+  explicit Window(const WindowOpts &opts);
   ~Window();
 
   Window(const Window &) = delete;

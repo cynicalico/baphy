@@ -12,22 +12,24 @@
 static void char_callback(GLFWwindow *window, unsigned int codepoint);
 static void cursor_enter_callback(GLFWwindow *window, int entered);
 static void cursor_pos_callback(GLFWwindow *window, double xpos, double ypos);
-static void drop_callback(GLFWwindow *, int count, const char **paths);
+static void drop_callback(GLFWwindow *window, int count, const char **paths);
 static void
 mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
 static void
 key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
-static void scroll_callback(GLFWwindow *, double xoffset, double yoffset);
+static void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
 baphy::Runner::Runner() {
   nexus = std::make_unique<nexus::Nexus>();
 }
 
 baphy::Runner::~Runner() {
-  ImGui_ImplOpenGL3_Shutdown();
-  ImGui_ImplGlfw_Shutdown();
-  ImGui::DestroyContext(imgui_ctx_);
-  imgui_ctx_ = nullptr;
+  if (imgui_ctx_) {
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext(imgui_ctx_);
+    imgui_ctx_ = nullptr;
+  }
 
   window.reset();
   glfwTerminate();
@@ -54,6 +56,7 @@ void baphy::Runner::open_window_(const WindowOpts &opts) {
   glfwWindowHint(GLFW_CONTEXT_DEBUG, GLFW_TRUE);
 #endif
   window = std::make_unique<Window>(opts);
+  glfwSetWindowUserPointer(window->handle(), this);
 
   glfwSetCharCallback(window->handle(), char_callback);
   glfwSetCursorPosCallback(window->handle(), cursor_pos_callback);
@@ -85,14 +88,9 @@ void baphy::Runner::initialize_imgui_() {
 
   if (!ImGui_ImplGlfw_InitForOpenGL(window->handle(), false))
     throw std::runtime_error("Failed to initialize ImGui GLFW backend!");
-  if (!ImGui_ImplOpenGL3_Init("#version 410"))
+  if (!ImGui_ImplOpenGL3_Init(nullptr))
     throw std::runtime_error("Failed to initialize ImGui OpenGL3 backend!");
   BAPHY_LOG_DEBUG("ImGui v{}", ImGui::GetVersion());
-}
-
-baphy::Runner &baphy::Runner::instance() {
-  static Runner instance;
-  return instance;
 }
 
 void baphy::Runner::run_() {
@@ -100,7 +98,14 @@ void baphy::Runner::run_() {
     glfwPollEvents();
     app_->update(0.0);
 
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
     app_->draw();
+
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     window->swap_buffers();
   }
@@ -109,16 +114,20 @@ void baphy::Runner::run_() {
 void char_callback(GLFWwindow *window, unsigned int codepoint) {
   ImGui_ImplGlfw_CharCallback(window, codepoint);
 
-  if (!ImGui::GetIO().WantCaptureKeyboard)
-    baphy::Runner::instance().nexus->publish<baphy::CharEvent>(codepoint);
+  if (!ImGui::GetIO().WantCaptureKeyboard) {
+    const auto runner =
+        reinterpret_cast<baphy::Runner *>(glfwGetWindowUserPointer(window));
+    runner->nexus->publish<baphy::CharEvent>(codepoint);
+  }
 }
 
 void cursor_enter_callback(GLFWwindow *window, const int entered) {
   ImGui_ImplGlfw_CursorEnterCallback(window, entered);
 
   if (!ImGui::GetIO().WantCaptureMouse) {
-    baphy::Runner::instance().nexus->publish<baphy::CursorEnterEvent>(
-        entered != 0);
+    const auto runner =
+        reinterpret_cast<baphy::Runner *>(glfwGetWindowUserPointer(window));
+    runner->nexus->publish<baphy::CursorEnterEvent>(entered != 0);
   }
 }
 
@@ -127,18 +136,22 @@ void cursor_pos_callback(GLFWwindow *window,
                          const double ypos) {
   ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
 
-  if (!ImGui::GetIO().WantCaptureMouse)
-    baphy::Runner::instance().nexus->publish<baphy::CursorPosEvent>(xpos, ypos);
+  if (!ImGui::GetIO().WantCaptureMouse) {
+    const auto runner =
+        static_cast<baphy::Runner *>(glfwGetWindowUserPointer(window));
+    runner->nexus->publish<baphy::CursorPosEvent>(xpos, ypos);
+  }
 }
 
-void drop_callback(GLFWwindow *, const int count, const char **paths) {
+void drop_callback(GLFWwindow *window, const int count, const char **paths) {
   std::vector<std::string> owned_paths;
   owned_paths.reserve(static_cast<std::size_t>(count));
   for (int i = 0; i < count; ++i)
     owned_paths.emplace_back(paths[i]);
 
-  baphy::Runner::instance().nexus->publish<baphy::DropEvent>(
-      std::move(owned_paths));
+  const auto runner =
+      static_cast<baphy::Runner *>(glfwGetWindowUserPointer(window));
+  runner->nexus->publish<baphy::DropEvent>(std::move(owned_paths));
 }
 
 void mouse_button_callback(
@@ -146,7 +159,9 @@ void mouse_button_callback(
   ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
 
   if (!ImGui::GetIO().WantCaptureMouse) {
-    baphy::Runner::instance().nexus->publish<baphy::MouseButtonEvent>(
+    auto runner =
+        static_cast<baphy::Runner *>(glfwGetWindowUserPointer(window));
+    runner->nexus->publish<baphy::MouseButtonEvent>(
         static_cast<baphy::Button>(button),
         static_cast<baphy::Action>(action),
         static_cast<baphy::ModFlags>(mods));
@@ -161,7 +176,9 @@ static void key_callback(GLFWwindow *window,
   ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
 
   if (!ImGui::GetIO().WantCaptureKeyboard) {
-    baphy::Runner::instance().nexus->publish<baphy::KeyEvent>(
+    const auto runner =
+        static_cast<baphy::Runner *>(glfwGetWindowUserPointer(window));
+    runner->nexus->publish<baphy::KeyEvent>(
         static_cast<baphy::Key>(key),
         scancode,
         static_cast<baphy::Action>(action),
@@ -175,7 +192,8 @@ void scroll_callback(GLFWwindow *window,
   ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
 
   if (!ImGui::GetIO().WantCaptureMouse) {
-    baphy::Runner::instance().nexus->publish<baphy::ScrollEvent>(
-        xoffset, yoffset);
+    const auto runner =
+        static_cast<baphy::Runner *>(glfwGetWindowUserPointer(window));
+    runner->nexus->publish<baphy::ScrollEvent>(xoffset, yoffset);
   }
 }
