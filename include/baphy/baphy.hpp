@@ -13,7 +13,20 @@
 
 namespace baphy {
 const char *version();
+
+template<typename T>
+  requires std::derived_from<T, Application>
+int run(const WindowOpts &window_opts) {
+  try {
+    Runner().run<T>(window_opts);
+  } catch (std::runtime_error &e) {
+    BAPHY_LOG_ERROR("Runtime error: {}", e.what());
+    return 1;
+  }
+
+  return 0;
 }
+} // namespace baphy
 
 #include <fmt/format.h>
 #include <glad/gl.h>

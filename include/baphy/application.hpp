@@ -34,6 +34,7 @@ public:
 protected:
   nexus::ID callback_id_{};
 
+private:
   void subscribe_callbacks_();
 };
 } // namespace baphy

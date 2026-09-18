@@ -29,13 +29,14 @@ public:
 
 private:
   ImGuiContext *imgui_ctx_{nullptr};
-  Application *app_{nullptr};
+  std::unique_ptr<Application> app_{nullptr};
 
   void open_window_(const WindowOpts &opts);
   void initialize_imgui_();
 
   void run_();
   void poll_events_();
+  void draw_fps_overlay_();
 };
 
 template<typename T>
@@ -44,12 +45,11 @@ void Runner::run(const WindowOpts &opts) {
   open_window_(opts);
   initialize_imgui_();
 
-  app_ = new T(*this);
+  app_ = std::make_unique<T>(*this);
 
   run_();
 
-  delete app_;
-  app_ = nullptr;
+  app_.reset();
 }
 } // namespace baphy
 

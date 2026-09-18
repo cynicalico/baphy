@@ -14,6 +14,8 @@ baphy::Runner::Runner() {
 }
 
 baphy::Runner::~Runner() {
+  app_.reset();
+
   if (imgui_ctx_) {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL3_Shutdown();
@@ -84,6 +86,8 @@ void baphy::Runner::run_() {
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
 
+    draw_fps_overlay_();
+
     app_->draw();
 
     ImGui::Render();
@@ -130,4 +134,15 @@ void baphy::Runner::poll_events_() {
           *baphy_event);
     }
   }
+}
+
+void baphy::Runner::draw_fps_overlay_() {
+  ImGui::SetNextWindowPos(ImVec2(0, 0));
+  if (ImGui::Begin(
+          "hello",
+          nullptr,
+          ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration)) {
+    ImGui::Text("%.2f fps", ImGui::GetIO().Framerate);
+  }
+  ImGui::End();
 }

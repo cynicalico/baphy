@@ -22,6 +22,9 @@ void baphy::Application::mouse_wheel_callback(const MouseWheelEvent &) {}
 void baphy::Application::quit_callback(const QuitEvent &) {}
 
 void baphy::Application::subscribe_callbacks_() {
+  if (callback_id_ != 0)
+    runner.nexus->release_id(callback_id_);
+
   callback_id_ = runner.nexus->acquire_id();
 
   runner.nexus->subscribe<KeyboardEvent>(callback_id_, [&](const auto *e) {
