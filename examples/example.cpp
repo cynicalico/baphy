@@ -9,11 +9,33 @@ public:
       : Application(runner),
         window(*runner.window) {}
 
+  baphy::Color clear_color() override { return baphy::rgb(128, 64, 32); }
+
   void update(double dt) override {}
 
   void draw() override {
-    glClearColor(0.2f, 0.1f, 0.4f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
+    if (ImGui::Begin("Controls", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+      static baphy::SwapInterval selected_swap_interval;
+      selected_swap_interval = window.swap_interval();
+
+      constexpr const char *swap_interval_names[] = {
+          "Immediate",
+          "VSync",
+          "Adaptive",
+      };
+
+      int selected_index = static_cast<int>(selected_swap_interval);
+
+      if (ImGui::Combo("Swap Interval",
+                       &selected_index,
+                       swap_interval_names,
+                       IM_ARRAYSIZE(swap_interval_names))) {
+        selected_swap_interval =
+            static_cast<baphy::SwapInterval>(selected_index);
+        window.set_swap_interval(selected_swap_interval);
+      }
+    }
+    ImGui::End();
   }
 
   void keyboard_callback(const baphy::KeyboardEvent &e) override {

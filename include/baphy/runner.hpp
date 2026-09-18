@@ -6,11 +6,16 @@
 #include <nexus/nexus.hpp>
 #include <type_traits>
 #include "baphy/application.hpp"
+#include "baphy/util/time.hpp"
 #include "baphy/window.hpp"
+#include "implot.h"
 
 namespace baphy {
 class Runner {
 public:
+  FrameCounter<> frame_counter{};
+  bool first_frame{true};
+
   std::unique_ptr<nexus::Nexus> nexus{nullptr};
   std::unique_ptr<Window> window{nullptr};
 
@@ -29,6 +34,8 @@ public:
 
 private:
   ImGuiContext *imgui_ctx_{nullptr};
+  ImPlotContext *implot_ctx_{nullptr};
+
   std::unique_ptr<Application> app_{nullptr};
 
   void open_window_(const WindowOpts &opts);

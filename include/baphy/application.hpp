@@ -3,6 +3,7 @@
 
 #include <baphy/event/all.hpp>
 #include <nexus/nexus.hpp>
+#include "baphy/color.hpp"
 
 namespace baphy {
 class Runner;
@@ -20,6 +21,8 @@ public:
 
   Application(Application &&other) noexcept = delete;
   Application &operator=(Application &&other) noexcept = delete;
+
+  virtual Color clear_color();
 
   virtual void update(double dt);
 

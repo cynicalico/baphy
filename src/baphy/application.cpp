@@ -11,6 +11,10 @@ baphy::Application::~Application() {
   runner.nexus->release_id(callback_id_);
 }
 
+baphy::Color baphy::Application::clear_color() {
+  return rgb(0, 0, 0);
+}
+
 void baphy::Application::update(double) {}
 
 void baphy::Application::draw() {}

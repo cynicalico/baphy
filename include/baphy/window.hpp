@@ -13,6 +13,12 @@ struct WindowOpts {
   bool resizable{false};
 };
 
+enum class SwapInterval {
+  Immediate,
+  VSync,
+  Adaptive,
+};
+
 class Window {
 public:
   explicit Window(const WindowOpts &opts);
@@ -39,6 +45,9 @@ public:
 
   void set_resizable(bool resizable);
   [[nodiscard]] bool resizable() const;
+
+  bool set_swap_interval(SwapInterval interval);
+  [[nodiscard]] SwapInterval swap_interval() const;
 
   [[nodiscard]] glm::mat4 ortho_projection() const;
 

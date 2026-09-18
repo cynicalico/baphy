@@ -1,6 +1,4 @@
 #include "baphy/util/time.hpp"
-
-#include <chrono>
 #include <fmt/format.h>
 
 std::string baphy::timestamp() {

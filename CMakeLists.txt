@@ -37,12 +37,14 @@ target_sources(
         ]]] ]=]
         "src/baphy/application.cpp"
         "src/baphy/baphy.cpp"
+        "src/baphy/color.cpp"
         "src/baphy/log.cpp"
         "src/baphy/runner.cpp"
+        "src/baphy/util/averagers.cpp"
         "src/baphy/util/envvars.cpp"
         "src/baphy/util/time.cpp"
         "src/baphy/window.cpp"
-        # [[[end]]] (sum: 7671KTav//)
+        # [[[end]]] (sum: Z6yfkkNYD/)
 
         PUBLIC
         FILE_SET headers
@@ -57,6 +59,7 @@ target_sources(
         ]]] ]=]
         "include/baphy/application.hpp"
         "include/baphy/baphy.hpp"
+        "include/baphy/color.hpp"
         "include/baphy/event/all.hpp"
         "include/baphy/event/common.hpp"
         "include/baphy/event/keyboard.hpp"
@@ -64,12 +67,13 @@ target_sources(
         "include/baphy/event/quit.hpp"
         "include/baphy/log.hpp"
         "include/baphy/runner.hpp"
+        "include/baphy/util/averagers.hpp"
         "include/baphy/util/enum_class_bitops.hpp"
         "include/baphy/util/envvars.hpp"
         "include/baphy/util/platform.hpp"
         "include/baphy/util/time.hpp"
         "include/baphy/window.hpp"
-        # [[[end]]] (sum: fFnwjIAt4d)
+        # [[[end]]] (sum: X5jlfHxq+C)
 )
 
 target_compile_features(baphy PRIVATE cxx_std_23)

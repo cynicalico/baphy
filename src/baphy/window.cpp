@@ -101,6 +101,40 @@ bool baphy::Window::resizable() const {
   return SDL_GetWindowFlags(handle_) & SDL_WINDOW_RESIZABLE;
 }
 
+bool baphy::Window::set_swap_interval(SwapInterval interval) {
+  int sdl_interval;
+
+  switch (interval) {
+  case SwapInterval::Immediate:
+    sdl_interval = 0;
+    break;
+  case SwapInterval::VSync:
+    sdl_interval = 1;
+    break;
+  case SwapInterval::Adaptive:
+    sdl_interval = -1;
+    break;
+  }
+
+  return SDL_GL_SetSwapInterval(sdl_interval);
+}
+
+baphy::SwapInterval baphy::Window::swap_interval() const {
+  int interval;
+  SDL_GL_GetSwapInterval(&interval); // TODO probably should error check
+
+  switch (interval) {
+  case 0:
+    return SwapInterval::Immediate;
+  case 1:
+    return SwapInterval::VSync;
+  case -1:
+    return SwapInterval::Adaptive;
+  default:
+    std::unreachable();
+  }
+}
+
 glm::mat4 baphy::Window::ortho_projection() const {
   return glm::ortho(
       0.0f, static_cast<float>(w()), static_cast<float>(h()), 0.0f);

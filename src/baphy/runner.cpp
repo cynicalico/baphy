@@ -72,28 +72,43 @@ void baphy::Runner::initialize_imgui_() {
   if (!ImGui_ImplOpenGL3_Init(nullptr))
     throw std::runtime_error("Failed to initialize ImGui OpenGL3 backend!");
   BAPHY_LOG_DEBUG("ImGui v{}", ImGui::GetVersion());
+
+  implot_ctx_ = ImPlot::CreateContext();
+  if (!implot_ctx_)
+    throw std::runtime_error("Failed to initialize ImPlot!");
 }
 
 void baphy::Runner::run_() {
-  if (!SDL_GL_SetSwapInterval(1))
-    BAPHY_LOG_WARN("Failed to enable vsync: {}", SDL_GetError());
+  if (!window->set_swap_interval(SwapInterval::Adaptive)) {
+    if (!window->set_swap_interval(SwapInterval::VSync))
+      BAPHY_LOG_WARN("Failed to enable vsync: {}", SDL_GetError());
+  }
+
+  frame_counter.reset();
 
   while (!window->should_close()) {
     poll_events_();
-    app_->update(0.0);
+    app_->update(as_secs_dt(frame_counter.dt()));
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
 
-    draw_fps_overlay_();
+    const auto clear_color = app_->clear_color().value();
+    glClearColor(clear_color.r, clear_color.g, clear_color.b, clear_color.a);
+    glClear(GL_COLOR_BUFFER_BIT);
 
     app_->draw();
+
+    draw_fps_overlay_();
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     window->swap_buffers();
+
+    frame_counter.update();
+    first_frame = false;
   }
 }
 
@@ -137,12 +152,16 @@ void baphy::Runner::poll_events_() {
 }
 
 void baphy::Runner::draw_fps_overlay_() {
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(2, 2));
+
   ImGui::SetNextWindowPos(ImVec2(0, 0));
   if (ImGui::Begin(
-          "hello",
+          "fps_overlay",
           nullptr,
           ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoDecoration)) {
-    ImGui::Text("%.2f fps", ImGui::GetIO().Framerate);
+    ImGui::Text("FPS: %.2f", frame_counter.fps());
   }
   ImGui::End();
+
+  ImGui::PopStyleVar();
 }
