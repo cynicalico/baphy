@@ -1,23 +1,13 @@
 #include "baphy/runner.hpp"
 
-#include <GLFW/glfw3.h>
+#include <SDL3/SDL.h>
 #include <fmt/format.h>
 #include <glad/gl.h>
-#include <imgui_impl_glfw.h>
 #include <imgui_impl_opengl3.h>
+#include <imgui_impl_sdl3.h>
 #include <stdexcept>
 #include "baphy/event/all.hpp"
 #include "baphy/log.hpp"
-
-static void char_callback(GLFWwindow *window, unsigned int codepoint);
-static void cursor_enter_callback(GLFWwindow *window, int entered);
-static void cursor_pos_callback(GLFWwindow *window, double xpos, double ypos);
-static void drop_callback(GLFWwindow *window, int count, const char **paths);
-static void
-mouse_button_callback(GLFWwindow *window, int button, int action, int mods);
-static void
-key_callback(GLFWwindow *window, int key, int scancode, int action, int mods);
-static void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 
 baphy::Runner::Runner() {
   nexus = std::make_unique<nexus::Nexus>();
@@ -26,48 +16,37 @@ baphy::Runner::Runner() {
 baphy::Runner::~Runner() {
   if (imgui_ctx_) {
     ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
+    ImGui_ImplSDL3_Shutdown();
     ImGui::DestroyContext(imgui_ctx_);
     imgui_ctx_ = nullptr;
   }
 
   window.reset();
-  glfwTerminate();
+  SDL_Quit();
 
   nexus.reset();
 }
 
 void baphy::Runner::open_window_(const WindowOpts &opts) {
-  if (!glfwInit()) {
-    const char *description;
-    auto code = glfwGetError(&description);
-    throw std::runtime_error(fmt::format(
-        "Failed to initialize GLFW! Error {}: {}", code, description));
+  if (!SDL_Init(SDL_INIT_VIDEO)) {
+    throw std::runtime_error(
+        fmt::format("Failed to initialize SDL! {}", SDL_GetError()));
   }
-  BAPHY_LOG_DEBUG("GLFW v{}.{}.{}",
-                  GLFW_VERSION_MAJOR,
-                  GLFW_VERSION_MINOR,
-                  GLFW_VERSION_REVISION);
+  BAPHY_LOG_DEBUG("SDL v{}.{}.{}",
+                  SDL_VERSIONNUM_MAJOR(SDL_VERSION),
+                  SDL_VERSIONNUM_MINOR(SDL_VERSION),
+                  SDL_VERSIONNUM_MICRO(SDL_VERSION));
 
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 #ifndef NDEBUG
-  glfwWindowHint(GLFW_CONTEXT_DEBUG, GLFW_TRUE);
+  SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, SDL_GL_CONTEXT_DEBUG_FLAG);
 #endif
   window = std::make_unique<Window>(opts);
-  glfwSetWindowUserPointer(window->handle(), this);
 
-  glfwSetCharCallback(window->handle(), char_callback);
-  glfwSetCursorPosCallback(window->handle(), cursor_pos_callback);
-  glfwSetCursorEnterCallback(window->handle(), cursor_enter_callback);
-  glfwSetDropCallback(window->handle(), drop_callback);
-  glfwSetKeyCallback(window->handle(), key_callback);
-  glfwSetMouseButtonCallback(window->handle(), mouse_button_callback);
-  glfwSetScrollCallback(window->handle(), scroll_callback);
-
-  glfwMakeContextCurrent(window->handle());
-  if (gladLoadGL(glfwGetProcAddress) == 0)
+  SDL_GL_MakeCurrent(window->handle(), window->context());
+  if (gladLoadGL(SDL_GL_GetProcAddress) == 0)
     throw std::runtime_error("Failed to initialize GLAD!");
   BAPHY_LOG_DEBUG("OpenGL v{}",
                   reinterpret_cast<const char *>(glGetString(GL_VERSION)));
@@ -86,20 +65,23 @@ void baphy::Runner::initialize_imgui_() {
   ImGui::StyleColorsDark();
   ImGui::GetIO().IniFilename = nullptr;
 
-  if (!ImGui_ImplGlfw_InitForOpenGL(window->handle(), false))
-    throw std::runtime_error("Failed to initialize ImGui GLFW backend!");
+  if (!ImGui_ImplSDL3_InitForOpenGL(window->handle(), window->context()))
+    throw std::runtime_error("Failed to initialize ImGui SDL3 backend!");
   if (!ImGui_ImplOpenGL3_Init(nullptr))
     throw std::runtime_error("Failed to initialize ImGui OpenGL3 backend!");
   BAPHY_LOG_DEBUG("ImGui v{}", ImGui::GetVersion());
 }
 
 void baphy::Runner::run_() {
+  if (!SDL_GL_SetSwapInterval(1))
+    BAPHY_LOG_WARN("Failed to enable vsync: {}", SDL_GetError());
+
   while (!window->should_close()) {
-    glfwPollEvents();
+    poll_events_();
     app_->update(0.0);
 
     ImGui_ImplOpenGL3_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
+    ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
 
     app_->draw();
@@ -111,89 +93,190 @@ void baphy::Runner::run_() {
   }
 }
 
-void char_callback(GLFWwindow *window, unsigned int codepoint) {
-  ImGui_ImplGlfw_CharCallback(window, codepoint);
+void baphy::Runner::poll_events_() {
+  SDL_Event event;
+  while (SDL_PollEvent(&event)) {
+    ImGui_ImplSDL3_ProcessEvent(&event);
 
-  if (!ImGui::GetIO().WantCaptureKeyboard) {
-    const auto runner =
-        reinterpret_cast<baphy::Runner *>(glfwGetWindowUserPointer(window));
-    runner->nexus->publish<baphy::CharEvent>(codepoint);
-  }
-}
+    switch (event.type) {
+    case SDL_EVENT_QUIT:
+      nexus->publish<QuitEvent>(event.quit.timestamp);
+      break;
 
-void cursor_enter_callback(GLFWwindow *window, const int entered) {
-  ImGui_ImplGlfw_CursorEnterCallback(window, entered);
+    case SDL_EVENT_DISPLAY_ORIENTATION:
+    case SDL_EVENT_DISPLAY_ADDED:
+    case SDL_EVENT_DISPLAY_REMOVED:
+    case SDL_EVENT_DISPLAY_MOVED:
+    case SDL_EVENT_DISPLAY_DESKTOP_MODE_CHANGED:
+    case SDL_EVENT_DISPLAY_CURRENT_MODE_CHANGED:
+    case SDL_EVENT_DISPLAY_CONTENT_SCALE_CHANGED:
+    case SDL_EVENT_DISPLAY_USABLE_BOUNDS_CHANGED:
+      break; // TODO
 
-  if (!ImGui::GetIO().WantCaptureMouse) {
-    const auto runner =
-        reinterpret_cast<baphy::Runner *>(glfwGetWindowUserPointer(window));
-    runner->nexus->publish<baphy::CursorEnterEvent>(entered != 0);
-  }
-}
+    case SDL_EVENT_WINDOW_SHOWN:
+    case SDL_EVENT_WINDOW_HIDDEN:
+    case SDL_EVENT_WINDOW_EXPOSED:
+    case SDL_EVENT_WINDOW_MOVED:
+    case SDL_EVENT_WINDOW_RESIZED:
+    case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+    case SDL_EVENT_WINDOW_METAL_VIEW_RESIZED:
+    case SDL_EVENT_WINDOW_MINIMIZED:
+    case SDL_EVENT_WINDOW_MAXIMIZED:
+    case SDL_EVENT_WINDOW_RESTORED:
+    case SDL_EVENT_WINDOW_MOUSE_ENTER:
+    case SDL_EVENT_WINDOW_MOUSE_LEAVE:
+    case SDL_EVENT_WINDOW_FOCUS_GAINED:
+    case SDL_EVENT_WINDOW_FOCUS_LOST:
+    case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
+    case SDL_EVENT_WINDOW_HIT_TEST:
+    case SDL_EVENT_WINDOW_ICCPROF_CHANGED:
+    case SDL_EVENT_WINDOW_DISPLAY_CHANGED:
+    case SDL_EVENT_WINDOW_DISPLAY_SCALE_CHANGED:
+    case SDL_EVENT_WINDOW_SAFE_AREA_CHANGED:
+    case SDL_EVENT_WINDOW_OCCLUDED:
+    case SDL_EVENT_WINDOW_ENTER_FULLSCREEN:
+    case SDL_EVENT_WINDOW_LEAVE_FULLSCREEN:
+    case SDL_EVENT_WINDOW_DESTROYED:
+    case SDL_EVENT_WINDOW_HDR_STATE_CHANGED:
+      break; // TODO
 
-void cursor_pos_callback(GLFWwindow *window,
-                         const double xpos,
-                         const double ypos) {
-  ImGui_ImplGlfw_CursorPosCallback(window, xpos, ypos);
+    case SDL_EVENT_KEY_DOWN:
+    case SDL_EVENT_KEY_UP:
+      nexus->publish<KeyboardEvent>(
+          event.key.timestamp,
+          action_from_sdl_keyboard_event(&event.key),
+          static_cast<Scancode>(event.key.scancode),
+          static_cast<Key>(event.key.key),
+          static_cast<ModFlags>(event.key.mod),
+          event.key.raw);
+      break;
 
-  if (!ImGui::GetIO().WantCaptureMouse) {
-    const auto runner =
-        static_cast<baphy::Runner *>(glfwGetWindowUserPointer(window));
-    runner->nexus->publish<baphy::CursorPosEvent>(xpos, ypos);
-  }
-}
+    case SDL_EVENT_TEXT_EDITING:
+    case SDL_EVENT_TEXT_INPUT:
+    case SDL_EVENT_KEYMAP_CHANGED:
+      break; // TODO
 
-void drop_callback(GLFWwindow *window, const int count, const char **paths) {
-  std::vector<std::string> owned_paths;
-  owned_paths.reserve(static_cast<std::size_t>(count));
-  for (int i = 0; i < count; ++i)
-    owned_paths.emplace_back(paths[i]);
+    case SDL_EVENT_KEYBOARD_ADDED:
+    case SDL_EVENT_KEYBOARD_REMOVED:
+    case SDL_EVENT_TEXT_EDITING_CANDIDATES:
+    case SDL_EVENT_SCREEN_KEYBOARD_SHOWN:
+    case SDL_EVENT_SCREEN_KEYBOARD_HIDDEN:
+      break; // TODO
 
-  const auto runner =
-      static_cast<baphy::Runner *>(glfwGetWindowUserPointer(window));
-  runner->nexus->publish<baphy::DropEvent>(std::move(owned_paths));
-}
+    case SDL_EVENT_MOUSE_MOTION:
+      nexus->publish<MouseMotionEvent>(
+          event.motion.timestamp,
+          static_cast<ButtonFlags>(event.motion.state),
+          event.motion.x,
+          event.motion.y,
+          event.motion.xrel,
+          event.motion.yrel);
+      break;
 
-void mouse_button_callback(
-    GLFWwindow *window, const int button, const int action, const int mods) {
-  ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
+    case SDL_EVENT_MOUSE_BUTTON_DOWN:
+    case SDL_EVENT_MOUSE_BUTTON_UP:
+      nexus->publish<MouseButtonEvent>(
+          event.button.timestamp,
+          action_from_sdl_mouse_button_event(&event.button),
+          static_cast<Button>(event.button.button),
+          event.button.clicks,
+          event.button.x,
+          event.button.y);
+      break;
 
-  if (!ImGui::GetIO().WantCaptureMouse) {
-    auto runner =
-        static_cast<baphy::Runner *>(glfwGetWindowUserPointer(window));
-    runner->nexus->publish<baphy::MouseButtonEvent>(
-        static_cast<baphy::Button>(button),
-        static_cast<baphy::Action>(action),
-        static_cast<baphy::ModFlags>(mods));
-  }
-}
+    case SDL_EVENT_MOUSE_WHEEL:
+      nexus->publish<MouseWheelEvent>(
+          event.wheel.timestamp,
+          event.wheel.x,
+          event.wheel.y,
+          static_cast<WheelDirection>(event.wheel.direction),
+          event.wheel.mouse_x,
+          event.wheel.mouse_y,
+          event.wheel.integer_x,
+          event.wheel.integer_y);
+      break;
 
-static void key_callback(GLFWwindow *window,
-                         const int key,
-                         const int scancode,
-                         const int action,
-                         const int mods) {
-  ImGui_ImplGlfw_KeyCallback(window, key, scancode, action, mods);
+    case SDL_EVENT_MOUSE_ADDED:
+    case SDL_EVENT_MOUSE_REMOVED:
+      break; // TODO
 
-  if (!ImGui::GetIO().WantCaptureKeyboard) {
-    const auto runner =
-        static_cast<baphy::Runner *>(glfwGetWindowUserPointer(window));
-    runner->nexus->publish<baphy::KeyEvent>(
-        static_cast<baphy::Key>(key),
-        scancode,
-        static_cast<baphy::Action>(action),
-        static_cast<baphy::ModFlags>(mods));
-  }
-}
+    case SDL_EVENT_JOYSTICK_AXIS_MOTION:
+    case SDL_EVENT_JOYSTICK_BALL_MOTION:
+    case SDL_EVENT_JOYSTICK_HAT_MOTION:
+    case SDL_EVENT_JOYSTICK_BUTTON_DOWN:
+    case SDL_EVENT_JOYSTICK_BUTTON_UP:
+    case SDL_EVENT_JOYSTICK_ADDED:
+    case SDL_EVENT_JOYSTICK_REMOVED:
+    case SDL_EVENT_JOYSTICK_BATTERY_UPDATED:
+    case SDL_EVENT_JOYSTICK_UPDATE_COMPLETE:
+      break; // TODO
 
-void scroll_callback(GLFWwindow *window,
-                     const double xoffset,
-                     const double yoffset) {
-  ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
+    case SDL_EVENT_GAMEPAD_AXIS_MOTION:
+    case SDL_EVENT_GAMEPAD_BUTTON_DOWN:
+    case SDL_EVENT_GAMEPAD_BUTTON_UP:
+    case SDL_EVENT_GAMEPAD_ADDED:
+    case SDL_EVENT_GAMEPAD_REMOVED:
+    case SDL_EVENT_GAMEPAD_REMAPPED:
+    case SDL_EVENT_GAMEPAD_TOUCHPAD_DOWN:
+    case SDL_EVENT_GAMEPAD_TOUCHPAD_MOTION:
+    case SDL_EVENT_GAMEPAD_TOUCHPAD_UP:
+    case SDL_EVENT_GAMEPAD_SENSOR_UPDATE:
+    case SDL_EVENT_GAMEPAD_UPDATE_COMPLETE:
+    case SDL_EVENT_GAMEPAD_STEAM_HANDLE_UPDATED:
+      break; // TODO
 
-  if (!ImGui::GetIO().WantCaptureMouse) {
-    const auto runner =
-        static_cast<baphy::Runner *>(glfwGetWindowUserPointer(window));
-    runner->nexus->publish<baphy::ScrollEvent>(xoffset, yoffset);
+    case SDL_EVENT_FINGER_DOWN:
+    case SDL_EVENT_FINGER_UP:
+    case SDL_EVENT_FINGER_MOTION:
+    case SDL_EVENT_FINGER_CANCELED:
+      break; // TODO
+
+    case SDL_EVENT_PINCH_BEGIN:
+    case SDL_EVENT_PINCH_UPDATE:
+    case SDL_EVENT_PINCH_END:
+      break; // TODO
+
+    case SDL_EVENT_CLIPBOARD_UPDATE:
+      break; // TODO
+
+    case SDL_EVENT_DROP_FILE:
+    case SDL_EVENT_DROP_TEXT:
+    case SDL_EVENT_DROP_BEGIN:
+    case SDL_EVENT_DROP_COMPLETE:
+    case SDL_EVENT_DROP_POSITION:
+      break; // TODO
+
+    case SDL_EVENT_AUDIO_DEVICE_ADDED:
+    case SDL_EVENT_AUDIO_DEVICE_REMOVED:
+    case SDL_EVENT_AUDIO_DEVICE_FORMAT_CHANGED:
+      break; // TODO
+
+    case SDL_EVENT_SENSOR_UPDATE:
+      break; // TODO
+
+    case SDL_EVENT_PEN_PROXIMITY_IN:
+    case SDL_EVENT_PEN_PROXIMITY_OUT:
+    case SDL_EVENT_PEN_DOWN:
+    case SDL_EVENT_PEN_UP:
+    case SDL_EVENT_PEN_BUTTON_DOWN:
+    case SDL_EVENT_PEN_BUTTON_UP:
+    case SDL_EVENT_PEN_MOTION:
+    case SDL_EVENT_PEN_AXIS:
+      break; // TODO
+
+    case SDL_EVENT_CAMERA_DEVICE_ADDED:
+    case SDL_EVENT_CAMERA_DEVICE_REMOVED:
+    case SDL_EVENT_CAMERA_DEVICE_APPROVED:
+    case SDL_EVENT_CAMERA_DEVICE_DENIED:
+      break; // TODO
+
+    case SDL_EVENT_RENDER_TARGETS_RESET:
+    case SDL_EVENT_RENDER_DEVICE_RESET:
+    case SDL_EVENT_RENDER_DEVICE_LOST:
+      break; // TODO
+
+    default:
+      BAPHY_LOG_WARN("Unhandled SDL event: {:08x}", event.type);
+    }
   }
 }

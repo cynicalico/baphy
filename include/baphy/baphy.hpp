@@ -7,7 +7,6 @@
 
 #include "baphy/application.hpp"
 #include "baphy/event/all.hpp"
-#include "baphy/event/formatters.hpp"
 #include "baphy/log.hpp"
 #include "baphy/runner.hpp"
 #include "baphy/window.hpp"

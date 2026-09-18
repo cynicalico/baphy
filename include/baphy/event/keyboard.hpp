@@ -4,11 +4,13 @@
 #include "baphy/event/common.hpp"
 
 namespace baphy {
-struct KeyEvent {
-  Key key;
-  int scancode;
+struct KeyboardEvent {
+  std::uint64_t timestamp;
   Action action;
+  Scancode scancode;
+  Key key;
   ModFlags mods;
+  std::uint16_t raw;
 };
 } // namespace baphy
 

@@ -1,6 +1,6 @@
 CPMAddPackage(URI "gh:ocornut/imgui@1.92.9b-docking" DOWNLOAD_ONLY YES)
 
-if (imgui_ADDED) 
+if (imgui_ADDED)
     add_library(imgui STATIC)
     add_library(imgui::imgui ALIAS imgui)
 
@@ -13,8 +13,8 @@ if (imgui_ADDED)
             "${imgui_SOURCE_DIR}/imgui_widgets.cpp"
 
             PRIVATE
-            "${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp"
             "${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp"
+            "${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.cpp"
 
             PUBLIC
             FILE_SET headers
@@ -35,8 +35,8 @@ if (imgui_ADDED)
             BASE_DIRS
             "${imgui_SOURCE_DIR}/backends"
             FILES
-            "${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.h"
             "${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.h"
+            "${imgui_SOURCE_DIR}/backends/imgui_impl_sdl3.h"
     )
 
     target_compile_features(imgui PRIVATE cxx_std_23)
@@ -47,5 +47,5 @@ if (imgui_ADDED)
         target_compile_options(imgui PRIVATE -w)
     endif ()
 
-    target_link_libraries(imgui PRIVATE glfw)
+    target_link_libraries(imgui PRIVATE SDL3::SDL3)
 endif ()

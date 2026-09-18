@@ -35,6 +35,7 @@ private:
   void initialize_imgui_();
 
   void run_();
+  void poll_events_();
 };
 
 template<typename T>

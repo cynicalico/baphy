@@ -1,7 +1,7 @@
 #ifndef BAPHY_APPLICATION_HPP
 #define BAPHY_APPLICATION_HPP
 
-#include <baphy/event/common.hpp>
+#include <baphy/event/all.hpp>
 #include <nexus/nexus.hpp>
 
 namespace baphy {
@@ -11,7 +11,7 @@ class Application {
 public:
   Runner &runner;
 
-  Application(Runner &runner);
+  explicit Application(Runner &runner);
 
   virtual ~Application();
 
@@ -25,20 +25,11 @@ public:
 
   virtual void draw();
 
-  virtual void char_callback(unsigned int codepoint);
-
-  virtual void cursor_enter_callback(bool entered);
-
-  virtual void cursor_pos_callback(double x, double y);
-
-  virtual void drop_callback(const std::vector<std::string> &paths);
-
-  virtual void
-  mouse_button_callback(Button button, Action action, ModFlags mods);
-
-  virtual void key_callback(Key key, Action action, ModFlags mods);
-
-  virtual void scroll_callback(double dx, double dy);
+  virtual void keyboard_callback(const KeyboardEvent &e);
+  virtual void mouse_button_callback(const MouseButtonEvent &e);
+  virtual void mouse_motion_callback(const MouseMotionEvent &e);
+  virtual void mouse_wheel_callback(const MouseWheelEvent &e);
+  virtual void quit_callback(const QuitEvent &e);
 
 protected:
   nexus::ID callback_id_{};

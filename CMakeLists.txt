@@ -58,15 +58,10 @@ target_sources(
         "include/baphy/application.hpp"
         "include/baphy/baphy.hpp"
         "include/baphy/event/all.hpp"
-        "include/baphy/event/char.hpp"
         "include/baphy/event/common.hpp"
-        "include/baphy/event/cursor_enter.hpp"
-        "include/baphy/event/cursor_pos.hpp"
-        "include/baphy/event/drop.hpp"
-        "include/baphy/event/formatters.hpp"
-        "include/baphy/event/key.hpp"
-        "include/baphy/event/mouse_button.hpp"
-        "include/baphy/event/scroll.hpp"
+        "include/baphy/event/keyboard.hpp"
+        "include/baphy/event/mouse.hpp"
+        "include/baphy/event/quit.hpp"
         "include/baphy/log.hpp"
         "include/baphy/runner.hpp"
         "include/baphy/util/enum_class_bitops.hpp"
@@ -74,7 +69,7 @@ target_sources(
         "include/baphy/util/platform.hpp"
         "include/baphy/util/time.hpp"
         "include/baphy/window.hpp"
-        # [[[end]]] (sum: r0G1MWPHUj)
+        # [[[end]]] (sum: fFnwjIAt4d)
 )
 
 target_compile_features(baphy PRIVATE cxx_std_23)
@@ -90,7 +85,6 @@ else ()
 endif ()
 
 target_compile_definitions(baphy PUBLIC
-        GLFW_INCLUDE_NONE
         SPDLOG_ACTIVE_LEVEL=${BAPHY_LOG_LEVEL}
 )
 
