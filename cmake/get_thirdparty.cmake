@@ -2,7 +2,7 @@ include("${CMAKE_CURRENT_LIST_DIR}/get_cpm.cmake")
 
 CPMAddPackage("gh:fmtlib/fmt#12.1.0")
 CPMAddPackage(URI "gh:g-truc/glm#1.0.3" OPTIONS "GLM_ENABLE_CXX_20 ON")
-CPMAddPackage(URI "gh:cynicalico/nexus@1.0.0" OPTIONS "NEXUS_USE_STD_TYPE_INDEX ON")
+CPMAddPackage(URI "gh:cynicalico/nexus#3c3515943e23d39d6a0ba9239c3e38e4724509e5" OPTIONS "NEXUS_USE_STD_TYPE_INDEX ON")
 CPMAddPackage("gh:libsdl-org/SDL#release-3.4.16")
 CPMAddPackage(URI "gh:gabime/spdlog@1.17.0" OPTIONS "SPDLOG_FMT_EXTERNAL ON")
 
