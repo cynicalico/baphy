@@ -93,6 +93,20 @@ int baphy::Window::h() const {
   return h;
 }
 
+int baphy::Window::pixel_w() const {
+  int w;
+  SDL_GetWindowSizeInPixels(handle_, &w, nullptr);
+
+  return w;
+}
+
+int baphy::Window::pixel_h() const {
+  int h;
+  SDL_GetWindowSizeInPixels(handle_, nullptr, &h);
+
+  return h;
+}
+
 void baphy::Window::set_resizable(bool resizable) {
   SDL_SetWindowResizable(handle_, resizable);
 }

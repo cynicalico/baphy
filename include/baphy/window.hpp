@@ -42,6 +42,8 @@ public:
   [[nodiscard]] glm::ivec2 size() const;
   [[nodiscard]] int w() const;
   [[nodiscard]] int h() const;
+  [[nodiscard]] int pixel_w() const;
+  [[nodiscard]] int pixel_h() const;
 
   void set_resizable(bool resizable);
   [[nodiscard]] bool resizable() const;
