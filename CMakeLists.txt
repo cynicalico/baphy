@@ -42,9 +42,10 @@ target_sources(
         "src/baphy/runner.cpp"
         "src/baphy/util/averagers.cpp"
         "src/baphy/util/envvars.cpp"
+        "src/baphy/util/io.cpp"
         "src/baphy/util/time.cpp"
         "src/baphy/window.cpp"
-        # [[[end]]] (sum: Z6yfkkNYD/)
+        # [[[end]]] (sum: dkS7ZVdQZD)
 
         PUBLIC
         FILE_SET headers
@@ -70,10 +71,11 @@ target_sources(
         "include/baphy/util/averagers.hpp"
         "include/baphy/util/enum_class_bitops.hpp"
         "include/baphy/util/envvars.hpp"
+        "include/baphy/util/io.hpp"
         "include/baphy/util/platform.hpp"
         "include/baphy/util/time.hpp"
         "include/baphy/window.hpp"
-        # [[[end]]] (sum: X5jlfHxq+C)
+        # [[[end]]] (sum: Ivl/edACaO)
 )
 
 target_compile_features(baphy PRIVATE cxx_std_23)

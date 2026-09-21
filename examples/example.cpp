@@ -1,36 +1,14 @@
 #include <array>
+#include <filesystem>
 #include <optional>
 #include "baphy/baphy.hpp"
 
-constexpr auto VERT_SHADER_SRC = R"glsl(
-#version 460 core
-
-layout (location = 0) in vec3 aPos;
-layout (location = 1) in vec3 aColor;
-
-out vec3 frag_color;
-
-void main() {
-  frag_color = aColor;
-
-  gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
-}
-)glsl";
-
-constexpr auto FRAG_SHADER_SRC = R"glsl(
-#version 460 core
-
-out vec4 FragColor;
-
-in vec3 frag_color;
-
-void main() {
-  FragColor = vec4(frag_color, 1.0f);
-}
-)glsl";
-
 std::optional<GLuint>
 create_shader_from_src(const char *vert_src, const char *frag_src);
+
+std::optional<GLuint>
+create_shader_from_path(const std::filesystem::path &vert_path,
+                        const std::filesystem::path &frag_path);
 
 struct Vertex {
   glm::vec3 pos;
@@ -54,7 +32,11 @@ public:
   explicit Example(baphy::Runner &runner)
       : Application(runner),
         window(*runner.window) {
-    shader = create_shader_from_src(VERT_SHADER_SRC, FRAG_SHADER_SRC).value();
+    const auto cwd = std::filesystem::current_path();
+    shader =
+        create_shader_from_path(cwd / "examples" / "shaders" / "triangles.vert",
+                                cwd / "examples" / "shaders" / "triangles.frag")
+            .value();
 
     glCreateBuffers(1, &vbo);
     glNamedBufferStorage(
@@ -136,4 +118,17 @@ create_shader_from_src(const char *vert_src, const char *frag_src) {
   }
 
   return shader;
+}
+
+std::optional<GLuint>
+create_shader_from_path(const std::filesystem::path &vert_path,
+                        const std::filesystem::path &frag_path) {
+  const auto vert_src = baphy::slurp(vert_path);
+  const auto frag_src = baphy::slurp(frag_path);
+
+  if (!vert_src || !frag_src)
+    return std::nullopt;
+
+  return create_shader_from_src(
+      vert_src.value().c_str(), frag_src.value().c_str());
 }

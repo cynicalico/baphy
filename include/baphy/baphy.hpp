@@ -9,6 +9,11 @@
 #include "baphy/event/all.hpp"
 #include "baphy/log.hpp"
 #include "baphy/runner.hpp"
+#include "baphy/util/averagers.hpp"
+#include "baphy/util/envvars.hpp"
+#include "baphy/util/io.hpp"
+#include "baphy/util/platform.hpp"
+#include "baphy/util/time.hpp"
 #include "baphy/window.hpp"
 
 namespace baphy {
