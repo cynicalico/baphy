@@ -7,7 +7,7 @@ std::optional<GLuint>
 create_shader_from_src(const char *vert_src, const char *frag_src);
 
 std::optional<GLuint>
-create_shader_from_path(const std::filesystem::path &vert_path,
+create_shader_from_file(const std::filesystem::path &vert_path,
                         const std::filesystem::path &frag_path);
 
 struct Vertex {
@@ -34,22 +34,25 @@ public:
         window(*runner.window) {
     const auto cwd = std::filesystem::current_path();
     shader =
-        create_shader_from_path(cwd / "examples" / "shaders" / "triangles.vert",
+        create_shader_from_file(cwd / "examples" / "shaders" / "triangles.vert",
                                 cwd / "examples" / "shaders" / "triangles.frag")
             .value();
 
     glCreateBuffers(1, &vbo);
+
     glNamedBufferStorage(
         vbo, sizeof(VERTEX_DATA), VERTEX_DATA.data(), GL_DYNAMIC_STORAGE_BIT);
 
     glCreateVertexArrays(1, &vao);
+
     glEnableVertexArrayAttrib(vao, 0);
-    glEnableVertexArrayAttrib(vao, 1);
     glVertexArrayAttribFormat(
         vao, 0, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, pos));
+    glVertexArrayAttribBinding(vao, 0, 0);
+
+    glEnableVertexArrayAttrib(vao, 1);
     glVertexArrayAttribFormat(
         vao, 1, 3, GL_FLOAT, GL_FALSE, offsetof(Vertex, color));
-    glVertexArrayAttribBinding(vao, 0, 0);
     glVertexArrayAttribBinding(vao, 1, 0);
 
     glVertexArrayVertexBuffer(vao, 0, vbo, 0, sizeof(Vertex));
@@ -121,7 +124,7 @@ create_shader_from_src(const char *vert_src, const char *frag_src) {
 }
 
 std::optional<GLuint>
-create_shader_from_path(const std::filesystem::path &vert_path,
+create_shader_from_file(const std::filesystem::path &vert_path,
                         const std::filesystem::path &frag_path) {
   const auto vert_src = baphy::slurp(vert_path);
   const auto frag_src = baphy::slurp(frag_path);
