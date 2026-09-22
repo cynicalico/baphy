@@ -7,8 +7,11 @@
 
 #include "baphy/application.hpp"
 #include "baphy/event/all.hpp"
+#include "baphy/gl.hpp"
+#include "baphy/glh/shader.hpp"
 #include "baphy/log.hpp"
 #include "baphy/runner.hpp"
+#include "baphy/glh/glh.hpp"
 #include "baphy/util/averagers.hpp"
 #include "baphy/util/envvars.hpp"
 #include "baphy/util/io.hpp"
@@ -34,6 +37,5 @@ int run(const WindowOpts &window_opts) {
 } // namespace baphy
 
 #include <fmt/format.h>
-#include <glad/gl.h>
 
 #endif // BAPHY_BAPHY_HPP

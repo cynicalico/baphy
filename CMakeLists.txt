@@ -38,6 +38,10 @@ target_sources(
         "src/baphy/application.cpp"
         "src/baphy/baphy.cpp"
         "src/baphy/color.cpp"
+        "src/baphy/gl.cpp"
+        "src/baphy/glh/buffer.cpp"
+        "src/baphy/glh/shader.cpp"
+        "src/baphy/glh/vertex_array.cpp"
         "src/baphy/log.cpp"
         "src/baphy/runner.cpp"
         "src/baphy/util/averagers.cpp"
@@ -45,7 +49,7 @@ target_sources(
         "src/baphy/util/io.cpp"
         "src/baphy/util/time.cpp"
         "src/baphy/window.cpp"
-        # [[[end]]] (sum: dkS7ZVdQZD)
+        # [[[end]]] (sum: pwe8Cfwkas)
 
         PUBLIC
         FILE_SET headers
@@ -66,6 +70,11 @@ target_sources(
         "include/baphy/event/keyboard.hpp"
         "include/baphy/event/mouse.hpp"
         "include/baphy/event/quit.hpp"
+        "include/baphy/gl.hpp"
+        "include/baphy/glh/buffer.hpp"
+        "include/baphy/glh/glh.hpp"
+        "include/baphy/glh/shader.hpp"
+        "include/baphy/glh/vertex_array.hpp"
         "include/baphy/log.hpp"
         "include/baphy/runner.hpp"
         "include/baphy/util/averagers.hpp"
@@ -75,7 +84,7 @@ target_sources(
         "include/baphy/util/platform.hpp"
         "include/baphy/util/time.hpp"
         "include/baphy/window.hpp"
-        # [[[end]]] (sum: Ivl/edACaO)
+        # [[[end]]] (sum: BgRLzVu4Wv)
 )
 
 target_compile_features(baphy PRIVATE cxx_std_23)

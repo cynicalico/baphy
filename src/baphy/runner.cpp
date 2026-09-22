@@ -2,23 +2,12 @@
 
 #include <SDL3/SDL.h>
 #include <fmt/format.h>
-#include <glad/gl.h>
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_sdl3.h>
 #include <stdexcept>
 #include "baphy/event/all.hpp"
+#include "baphy/gl.hpp"
 #include "baphy/log.hpp"
-
-#ifndef NDEBUG
-static void gl_debug_message_callback(
-    GLenum source,
-    GLenum type,
-    GLuint id,
-    GLenum severity,
-    GLsizei length,
-    const GLchar *message,
-    const void *userParam);
-#endif
 
 baphy::Runner::Runner() {
   nexus = std::make_unique<nexus::Nexus>();
@@ -26,6 +15,11 @@ baphy::Runner::Runner() {
 
 baphy::Runner::~Runner() {
   app_.reset();
+
+  if (implot_ctx_) {
+    ImPlot::DestroyContext(implot_ctx_);
+    implot_ctx_ = nullptr;
+  }
 
   if (imgui_ctx_) {
     ImGui_ImplOpenGL3_Shutdown();
@@ -184,85 +178,3 @@ void baphy::Runner::draw_fps_overlay_() {
 
   ImGui::PopStyleVar();
 }
-
-#ifndef NDEBUG
-static constexpr const char *gl_debug_source_to_str(GLenum source);
-static constexpr const char *gl_debug_type_to_str(GLenum type);
-
-void gl_debug_message_callback(
-    const GLenum source,
-    const GLenum type,
-    const GLuint id,
-    const GLenum severity,
-    const GLsizei,
-    const GLchar *message,
-    const void *) {
-  const char *source_str = gl_debug_source_to_str(source);
-  const char *type_str = gl_debug_type_to_str(type);
-
-  switch (severity) {
-  case GL_DEBUG_SEVERITY_HIGH:
-    BAPHY_LOG_ERROR(
-        "OpenGL [{}] [{}] id={}: {}", source_str, type_str, id, message);
-    break;
-  case GL_DEBUG_SEVERITY_MEDIUM:
-    BAPHY_LOG_WARN(
-        "OpenGL [{}] [{}] id={}: {}", source_str, type_str, id, message);
-    break;
-  case GL_DEBUG_SEVERITY_LOW:
-    BAPHY_LOG_DEBUG(
-        "OpenGL [{}] [{}] id={}: {}", source_str, type_str, id, message);
-    break;
-  case GL_DEBUG_SEVERITY_NOTIFICATION:
-    BAPHY_LOG_TRACE(
-        "OpenGL [{}] [{}] id={}: {}", source_str, type_str, id, message);
-    break;
-  default:
-    std::unreachable();
-  }
-}
-
-constexpr const char *gl_debug_source_to_str(const GLenum source) {
-  switch (source) {
-  case GL_DEBUG_SOURCE_API:
-    return "API";
-  case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
-    return "WINDOW_SYSTEM";
-  case GL_DEBUG_SOURCE_SHADER_COMPILER:
-    return "SHADER_COMPILER";
-  case GL_DEBUG_SOURCE_THIRD_PARTY:
-    return "THIRD_PARTY";
-  case GL_DEBUG_SOURCE_APPLICATION:
-    return "APPLICATION";
-  case GL_DEBUG_SOURCE_OTHER:
-    return "OTHER";
-  default:
-    std::unreachable();
-  }
-}
-
-constexpr const char *gl_debug_type_to_str(const GLenum type) {
-  switch (type) {
-  case GL_DEBUG_TYPE_ERROR:
-    return "ERROR";
-  case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
-    return "DEPRECATED_BEHAVIOR";
-  case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
-    return "UNDEFINED_BEHAVIOR";
-  case GL_DEBUG_TYPE_PORTABILITY:
-    return "PORTABILITY";
-  case GL_DEBUG_TYPE_PERFORMANCE:
-    return "PERFORMANCE";
-  case GL_DEBUG_TYPE_MARKER:
-    return "MARKER";
-  case GL_DEBUG_TYPE_PUSH_GROUP:
-    return "PUSH_GROUP";
-  case GL_DEBUG_TYPE_POP_GROUP:
-    return "POP_GROUP";
-  case GL_DEBUG_TYPE_OTHER:
-    return "OTHER";
-  default:
-    std::unreachable();
-  }
-}
-#endif

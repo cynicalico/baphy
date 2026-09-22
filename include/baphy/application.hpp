@@ -1,9 +1,9 @@
 #ifndef BAPHY_APPLICATION_HPP
 #define BAPHY_APPLICATION_HPP
 
-#include <baphy/event/all.hpp>
 #include <nexus/nexus.hpp>
 #include "baphy/color.hpp"
+#include "baphy/event/all.hpp"
 
 namespace baphy {
 class Runner;
