@@ -5,8 +5,10 @@ layout (location = 1) in vec3 aColor;
 
 out vec3 frag_color;
 
-void main() {
-  frag_color = aColor;
+uniform mat4 projection;
 
-  gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);
+void main() {
+    frag_color = aColor;
+
+    gl_Position = projection * vec4(aPos.x, aPos.y, aPos.z, 1.0);
 }
