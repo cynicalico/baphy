@@ -24,8 +24,11 @@ public:
   Painter &operator=(const Painter &other) = delete;
   Painter &operator=(Painter &&other) noexcept = delete;
 
+  void point(glm::vec2 p0, const Color &color);
+  void line(glm::vec2 p0, glm::vec2 p1, const Color &color);
   void tri(glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, const Color &color);
   void rect(glm::vec2 p0, glm::vec2 size, const Color &color);
+  void square(glm::vec2 p0, float size, const Color &color);
 
   void draw(const glm::mat4 &projection);
 

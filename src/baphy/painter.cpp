@@ -61,8 +61,32 @@ baphy::Painter::~Painter() {
   glDeleteProgram(primitive_shader_);
 }
 
-void baphy::Painter::tri(
-    glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, const Color &color) {
+void baphy::Painter::point(glm::vec2 p0, const Color &color) {
+  square(p0, 1.0f, color);
+}
+
+void baphy::Painter::line(const glm::vec2 p0,
+                          const glm::vec2 p1,
+                          const Color &color) {
+  const auto v0 = glm::vec3(p1, 0.0f) - glm::vec3(p0, 0.0f);
+  constexpr auto v1 = glm::vec3(0.0f, 0.0f, 1.0f);
+  const auto cross = glm::normalize(glm::cross(v0, v1));
+
+  constexpr auto line_width = 1.0f;
+
+  const auto a = p0 + (line_width / 2.0f) * glm::vec2(cross);
+  const auto b = p0 - (line_width / 2.0f) * glm::vec2(cross);
+  const auto c = p1 + (line_width / 2.0f) * glm::vec2(cross);
+  const auto d = p1 - (line_width / 2.0f) * glm::vec2(cross);
+
+  tri(a, c, d, color);
+  tri(a, d, b, color);
+}
+
+void baphy::Painter::tri(const glm::vec2 p0,
+                         const glm::vec2 p1,
+                         const glm::vec2 p2,
+                         const Color &color) {
   if (!primitive_vbos_[curr_primitive_vbo_idx_]->can_fit(3)) {
     curr_primitive_vbo_idx_++;
     if (primitive_vbos_.size() <= curr_primitive_vbo_idx_) {
@@ -80,9 +104,17 @@ void baphy::Painter::tri(
   });
 }
 
-void baphy::Painter::rect(glm::vec2 p0, glm::vec2 size, const Color &color) {
+void baphy::Painter::rect(const glm::vec2 p0,
+                          const glm::vec2 size,
+                          const Color &color) {
   tri(p0, p0 + glm::vec2{size.x, 0.0f}, p0 + size, color);
   tri(p0, p0 + size, p0 + glm::vec2{0.0f, size.y}, color);
+}
+
+void baphy::Painter::square(const glm::vec2 p0,
+                            const float size,
+                            const Color &color) {
+  rect(p0, {size, size}, color);
 }
 
 void baphy::Painter::draw(const glm::mat4 &projection) {

@@ -96,11 +96,6 @@ void baphy::Runner::initialize_other_() {
 }
 
 void baphy::Runner::run_() {
-  if (!window->set_swap_interval(SwapInterval::Adaptive)) {
-    if (!window->set_swap_interval(SwapInterval::VSync))
-      BAPHY_LOG_WARN("Failed to enable vsync: {}", SDL_GetError());
-  }
-
   frame_counter.reset();
 
   while (!window->should_close()) {
@@ -128,7 +123,8 @@ void baphy::Runner::run_() {
         -1.0f);
     painter->draw(projection);
 
-    draw_fps_overlay_();
+    if (show_fps)
+      draw_fps_overlay_();
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

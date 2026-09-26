@@ -5,41 +5,39 @@ public:
   baphy::Window &window;
   baphy::Painter &painter;
 
-  std::vector<std::pair<glm::vec2, baphy::RGBA>> rects;
+  double theta{0.0};
 
   explicit Example(baphy::Runner &runner)
       : Application(runner),
         window(*runner.window),
-        painter(*runner.painter) {}
+        painter(*runner.painter) {
+    window.set_swap_interval(baphy::SwapInterval::Adaptive);
+  }
 
   baphy::Color clear_color() override { return baphy::rgb(16, 16, 16); }
 
+  void update(const double dt) override { theta += 90.0 * dt; }
+
   void draw() override {
-    for (const auto &[p, color]: rects)
-      painter.rect(p, {50.0f, 50.0f}, color);
+    const auto x =
+        (window.pixel_w() / 2.0) + (50.0 * std::cos(glm::radians(theta)));
+    const auto y =
+        (window.pixel_h() / 2.0) + (50.0 * std::sin(glm::radians(theta)));
+
+    painter.square({x - 25.0, y - 25.0}, 50.0, baphy::rgb(255, 255, 255));
+
+    painter.line({window.pixel_w() / 2.0, window.pixel_h() / 2.0},
+                 {x, y},
+                 baphy::rgb(255, 0, 255));
   }
 
   void keyboard_callback(const baphy::KeyboardEvent &e) override {
     if (e.key == baphy::Key::Escape && e.action == baphy::Action::Up)
       window.set_should_close(true);
-
-    if (e.key == baphy::Key::R && e.action == baphy::Action::Up)
-      rects.clear();
-  }
-
-  void mouse_button_callback(const baphy::MouseButtonEvent &e) override {
-    if (e.button == baphy::Button::Left && e.action == baphy::Action::Down) {
-      const auto r = clero::rng(clero::int_range{0, 255});
-      const auto g = clero::rng(clero::int_range{0, 255});
-      const auto b = clero::rng(clero::int_range{0, 255});
-
-      rects.emplace_back(std::make_pair<glm::vec2, baphy::RGBA>(
-          {e.x - 25.0f, e.y - 25.0f}, baphy::rgb(r, g, b)));
-    }
   }
 };
 
 int main(int, char *[]) {
   return baphy::run<Example>(
-      {.title = "Example", .size = {1280, 960}, .resizable = true});
+      {.title = "Example", .size = {480, 360}, .resizable = false});
 }

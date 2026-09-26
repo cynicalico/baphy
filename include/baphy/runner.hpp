@@ -16,6 +16,7 @@ class Runner {
 public:
   FrameCounter<> frame_counter{};
   bool first_frame{true};
+  bool show_fps{false};
 
   std::unique_ptr<nexus::Nexus> nexus{nullptr};
   std::unique_ptr<Window> window{nullptr};
