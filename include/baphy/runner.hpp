@@ -6,6 +6,7 @@
 #include <nexus/nexus.hpp>
 #include <type_traits>
 #include "baphy/application.hpp"
+#include "baphy/painter.hpp"
 #include "baphy/util/time.hpp"
 #include "baphy/window.hpp"
 #include "implot.h"
@@ -18,6 +19,7 @@ public:
 
   std::unique_ptr<nexus::Nexus> nexus{nullptr};
   std::unique_ptr<Window> window{nullptr};
+  std::unique_ptr<Painter> painter{nullptr};
 
   Runner();
   ~Runner();
@@ -40,6 +42,7 @@ private:
 
   void open_window_(const WindowOpts &opts);
   void initialize_imgui_();
+  void initialize_other_();
 
   void run_();
   void poll_events_();
@@ -51,6 +54,7 @@ template<typename T>
 void Runner::run(const WindowOpts &opts) {
   open_window_(opts);
   initialize_imgui_();
+  initialize_other_();
 
   app_ = std::make_unique<T>(*this);
 

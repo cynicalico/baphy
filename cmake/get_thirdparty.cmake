@@ -1,5 +1,6 @@
 include("${CMAKE_CURRENT_LIST_DIR}/get_cpm.cmake")
 
+CPMAddPackage("gh:cynicalico/clero#58e4c829f99974cb6397eeec335db5aa01e94da0")
 CPMAddPackage("gh:fmtlib/fmt#12.1.0")
 CPMAddPackage(URI "gh:g-truc/glm#1.0.3" OPTIONS "GLM_ENABLE_CXX_20 ON")
 CPMAddPackage(URI "gh:cynicalico/nexus#3c3515943e23d39d6a0ba9239c3e38e4724509e5" OPTIONS "NEXUS_USE_STD_TYPE_INDEX ON")
@@ -15,6 +16,7 @@ add_library(baphy_thirdparty INTERFACE)
 add_library(baphy::baphy_thirdparty ALIAS baphy_thirdparty)
 
 target_link_libraries(baphy_thirdparty INTERFACE
+        clero::clero
         fmt::fmt
         glad_gl_core
         glm::glm

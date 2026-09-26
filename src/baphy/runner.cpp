@@ -2,6 +2,7 @@
 
 #include <SDL3/SDL.h>
 #include <fmt/format.h>
+#include <glm/gtc/matrix_transform.hpp>
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_sdl3.h>
 #include <stdexcept>
@@ -89,6 +90,10 @@ void baphy::Runner::initialize_imgui_() {
     throw std::runtime_error("Failed to initialize ImPlot!");
 }
 
+void baphy::Runner::initialize_other_() {
+  painter = std::make_unique<Painter>();
+}
+
 void baphy::Runner::run_() {
   if (!window->set_swap_interval(SwapInterval::Adaptive)) {
     if (!window->set_swap_interval(SwapInterval::VSync))
@@ -112,6 +117,15 @@ void baphy::Runner::run_() {
     glClear(GL_COLOR_BUFFER_BIT);
 
     app_->draw();
+
+    glm::mat4 projection = glm::ortho(
+        0.0f,
+        static_cast<float>(window->pixel_w()),
+        static_cast<float>(window->pixel_h()),
+        0.0f,
+        1.0f,
+        -1.0f);
+    painter->draw(projection);
 
     draw_fps_overlay_();
 
