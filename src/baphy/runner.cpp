@@ -29,6 +29,7 @@ baphy::Runner::~Runner() {
     imgui_ctx_ = nullptr;
   }
 
+  painter.reset();
   window.reset();
   SDL_Quit();
 

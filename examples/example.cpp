@@ -22,6 +22,9 @@ public:
   void keyboard_callback(const baphy::KeyboardEvent &e) override {
     if (e.key == baphy::Key::Escape && e.action == baphy::Action::Up)
       window.set_should_close(true);
+
+    if (e.key == baphy::Key::R && e.action == baphy::Action::Up)
+      rects.clear();
   }
 
   void mouse_button_callback(const baphy::MouseButtonEvent &e) override {

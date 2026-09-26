@@ -64,12 +64,12 @@ baphy::Painter::~Painter() {
 void baphy::Painter::tri(
     glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, const Color &color) {
   if (!primitive_vbos_[curr_primitive_vbo_idx_]->can_fit(3)) {
-    if (primitive_vbos_.size() < curr_primitive_vbo_idx_) {
+    curr_primitive_vbo_idx_++;
+    if (primitive_vbos_.size() <= curr_primitive_vbo_idx_) {
       primitive_vbos_.emplace_back(
           std::make_unique<glh::VecBuffer<PrimitiveVertex>>(
               PRIMITIVE_BATCH_SIZE));
     }
-    curr_primitive_vbo_idx_++;
   }
 
   const auto gl_color = color.value();
@@ -80,9 +80,9 @@ void baphy::Painter::tri(
   });
 }
 
-void baphy::Painter::rect(glm::vec2 p, glm::vec2 size, const Color &color) {
-  tri(p, p + glm::vec2{size.x, 0.0f}, p + size, color);
-  tri(p, p + size, p + glm::vec2{0.0f, size.y}, color);
+void baphy::Painter::rect(glm::vec2 p0, glm::vec2 size, const Color &color) {
+  tri(p0, p0 + glm::vec2{size.x, 0.0f}, p0 + size, color);
+  tri(p0, p0 + size, p0 + glm::vec2{0.0f, size.y}, color);
 }
 
 void baphy::Painter::draw(const glm::mat4 &projection) {

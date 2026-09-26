@@ -25,7 +25,7 @@ public:
   Painter &operator=(Painter &&other) noexcept = delete;
 
   void tri(glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, const Color &color);
-  void rect(glm::vec2 p, glm::vec2 size, const Color &color);
+  void rect(glm::vec2 p0, glm::vec2 size, const Color &color);
 
   void draw(const glm::mat4 &projection);
 
