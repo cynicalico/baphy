@@ -106,7 +106,7 @@ void baphy::Runner::run_() {
     ImGui_ImplSDL3_NewFrame();
     ImGui::NewFrame();
 
-    glViewport(0, 0, window->pixel_w(), window->pixel_h());
+    glViewport(0, 0, window->w(), window->h());
 
     const auto clear_color = app_->clear_color().value();
     glClearColor(clear_color.r, clear_color.g, clear_color.b, clear_color.a);
@@ -114,13 +114,7 @@ void baphy::Runner::run_() {
 
     app_->draw();
 
-    glm::mat4 projection = glm::ortho(
-        0.0f,
-        static_cast<float>(window->pixel_w()),
-        static_cast<float>(window->pixel_h()),
-        0.0f,
-        1.0f,
-        -1.0f);
+    glm::mat4 projection = window->ortho_projection();
     painter->draw(projection);
 
     if (show_fps)

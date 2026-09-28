@@ -19,16 +19,13 @@ public:
   void update(const double dt) override { theta += 90.0 * dt; }
 
   void draw() override {
-    const auto x =
-        (window.pixel_w() / 2.0) + (50.0 * std::cos(glm::radians(theta)));
-    const auto y =
-        (window.pixel_h() / 2.0) + (50.0 * std::sin(glm::radians(theta)));
+    const auto center = window.center();
+    const auto x = center.x + 50.0 * std::cos(glm::radians(theta));
+    const auto y = center.y + 50.0 * std::sin(glm::radians(theta));
 
-    painter.square({x - 25.0, y - 25.0}, 50.0, baphy::rgb(255, 255, 255));
+    painter.square({x - 25.0, y - 25.0}, 50.0, baphy::rgb(0, 255, 255));
 
-    painter.line({window.pixel_w() / 2.0, window.pixel_h() / 2.0},
-                 {x, y},
-                 baphy::rgb(255, 0, 255));
+    painter.line(center, {x, y}, baphy::rgb(255, 0, 255));
   }
 
   void keyboard_callback(const baphy::KeyboardEvent &e) override {

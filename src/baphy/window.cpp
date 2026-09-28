@@ -93,20 +93,6 @@ int baphy::Window::h() const {
   return h;
 }
 
-int baphy::Window::pixel_w() const {
-  int w;
-  SDL_GetWindowSizeInPixels(handle_, &w, nullptr);
-
-  return w;
-}
-
-int baphy::Window::pixel_h() const {
-  int h;
-  SDL_GetWindowSizeInPixels(handle_, nullptr, &h);
-
-  return h;
-}
-
 void baphy::Window::set_resizable(bool resizable) {
   SDL_SetWindowResizable(handle_, resizable);
 }
@@ -152,6 +138,10 @@ baphy::SwapInterval baphy::Window::swap_interval() const {
 glm::mat4 baphy::Window::ortho_projection() const {
   return glm::ortho(
       0.0f, static_cast<float>(w()), static_cast<float>(h()), 0.0f);
+}
+
+glm::vec2 baphy::Window::center() const {
+  return glm::vec2(w(), h()) / 2.0f;
 }
 
 void baphy::Window::swap_buffers() {

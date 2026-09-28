@@ -42,8 +42,6 @@ public:
   [[nodiscard]] glm::ivec2 size() const;
   [[nodiscard]] int w() const;
   [[nodiscard]] int h() const;
-  [[nodiscard]] int pixel_w() const;
-  [[nodiscard]] int pixel_h() const;
 
   void set_resizable(bool resizable);
   [[nodiscard]] bool resizable() const;
@@ -52,6 +50,8 @@ public:
   [[nodiscard]] SwapInterval swap_interval() const;
 
   [[nodiscard]] glm::mat4 ortho_projection() const;
+
+  [[nodiscard]] glm::vec2 center() const;
 
   void swap_buffers();
 

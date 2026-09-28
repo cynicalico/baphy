@@ -21,7 +21,7 @@ std::shared_ptr<spdlog::logger> baphy::logger() {
     const auto log_path = std::filesystem::current_path() / ".log" /
                           fmt::format("{}.log", timestamp());
     sinks->add_sink(
-        std::make_shared<spdlog::sinks::basic_file_sink_mt>(log_path, true));
+        std::make_shared<spdlog::sinks::basic_file_sink_mt>(log_path.string(), true));
 
     const auto l = std::make_shared<spdlog::logger>("baphy", logger_sinks());
 
