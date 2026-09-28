@@ -3,6 +3,7 @@
 
 #include <nexus/nexus.hpp>
 #include "baphy/color.hpp"
+#include <optional>
 #include "baphy/event/all.hpp"
 
 namespace baphy {
@@ -35,7 +36,7 @@ public:
   virtual void quit_callback(const QuitEvent &e);
 
 protected:
-  nexus::ID callback_id_{};
+  std::optional<nexus::ID> callback_id_{std::nullopt};
 
 private:
   void subscribe_callbacks_();

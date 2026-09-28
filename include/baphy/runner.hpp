@@ -6,6 +6,7 @@
 #include <nexus/nexus.hpp>
 #include <type_traits>
 #include "baphy/application.hpp"
+#include "baphy/input_mgr.hpp"
 #include "baphy/painter.hpp"
 #include "baphy/util/time.hpp"
 #include "baphy/window.hpp"
@@ -20,6 +21,7 @@ public:
 
   std::unique_ptr<nexus::Nexus> nexus{nullptr};
   std::unique_ptr<Window> window{nullptr};
+  std::unique_ptr<InputMgr> input{nullptr};
   std::unique_ptr<Painter> painter{nullptr};
 
   Runner();

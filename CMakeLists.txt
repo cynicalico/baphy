@@ -42,6 +42,7 @@ target_sources(
         "src/baphy/glh/buffer.cpp"
         "src/baphy/glh/shader.cpp"
         "src/baphy/glh/vertex_array.cpp"
+        "src/baphy/input_mgr.cpp"
         "src/baphy/log.cpp"
         "src/baphy/painter.cpp"
         "src/baphy/runner.cpp"
@@ -50,7 +51,7 @@ target_sources(
         "src/baphy/util/io.cpp"
         "src/baphy/util/time.cpp"
         "src/baphy/window.cpp"
-        # [[[end]]] (sum: 3KHPisJaaA)
+        # [[[end]]] (sum: +Cm9KVqiPo)
 
         PUBLIC
         FILE_SET headers
@@ -76,6 +77,7 @@ target_sources(
         "include/baphy/glh/glh.hpp"
         "include/baphy/glh/shader.hpp"
         "include/baphy/glh/vertex_array.hpp"
+        "include/baphy/input_mgr.hpp"
         "include/baphy/log.hpp"
         "include/baphy/painter.hpp"
         "include/baphy/runner.hpp"
@@ -86,7 +88,7 @@ target_sources(
         "include/baphy/util/platform.hpp"
         "include/baphy/util/time.hpp"
         "include/baphy/window.hpp"
-        # [[[end]]] (sum: AdY3Eux5/I)
+        # [[[end]]] (sum: kq+9VKPrrq)
 )
 
 target_compile_features(baphy PRIVATE cxx_std_23)

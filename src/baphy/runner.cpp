@@ -29,6 +29,7 @@ baphy::Runner::~Runner() {
     imgui_ctx_ = nullptr;
   }
 
+  input.reset();
   painter.reset();
   window.reset();
   SDL_Quit();
@@ -92,6 +93,8 @@ void baphy::Runner::initialize_imgui_() {
 }
 
 void baphy::Runner::initialize_other_() {
+  input = std::make_unique<InputMgr>(*this);
+
   painter = std::make_unique<Painter>();
 }
 
