@@ -4,6 +4,7 @@
 #include <glm/glm.hpp>
 #include <nexus/nexus.hpp>
 #include <optional>
+#include <unordered_map>
 #include "baphy/event/all.hpp"
 
 namespace baphy {
@@ -11,16 +12,6 @@ class Runner;
 
 class InputMgr {
 public:
-  struct {
-    float x{0};
-    float y{0};
-    float dx{0};
-    float dy{0};
-    float px{0};
-    float py{0};
-    glm::dvec2 wheel{0, 0};
-  } mouse{};
-
   explicit InputMgr(Runner &runner);
   ~InputMgr();
 
@@ -30,11 +21,44 @@ public:
   InputMgr(InputMgr &&) noexcept;
   InputMgr &operator=(InputMgr &&) noexcept = delete;
 
-  void update_(double dt);
+  void prev_propagate_();
+
+  [[nodiscard]] glm::vec2 mouse_pos() const { return mouse.pos; }
+  [[nodiscard]] glm::vec2 mouse_delta() const { return mouse.delta; }
+  [[nodiscard]] glm::vec2 mouse_prev_pos() const { return mouse.prev_pos; }
+  [[nodiscard]] glm::vec2 mouse_wheel() const { return mouse.wheel; }
+
+  bool button_pressed(Button button) const;
+  bool button_released(Button button) const;
+  bool button_down(Button button) const;
+
+  bool key_pressed(Key key) const;
+  bool key_released(Key key) const;
+  bool key_down(Key key) const;
+
+  bool scancode_pressed(Scancode scancode) const;
+  bool scancode_released(Scancode scancode) const;
+  bool scancode_down(Scancode scancode) const;
 
 private:
   Runner &runner_;
   std::optional<nexus::ID> callback_id_{std::nullopt};
+
+  struct {
+    glm::vec2 pos{0, 0};
+    glm::vec2 delta{0, 0};
+    glm::vec2 prev_pos{0, 0};
+    glm::vec2 wheel{0, 0};
+    std::unordered_map<Button, bool> buttons_state{};
+    std::unordered_map<Button, bool> buttons_prev_state{};
+  } mouse{};
+
+  struct {
+    std::unordered_map<Key, bool> keys_state{};
+    std::unordered_map<Key, bool> keys_prev_state{};
+    std::unordered_map<Scancode, bool> scancodes_state{};
+    std::unordered_map<Scancode, bool> scancodes_prev_state{};
+  } keyboard{};
 
   void register_callbacks_();
 

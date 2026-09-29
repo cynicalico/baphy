@@ -18,7 +18,12 @@ public:
 
   baphy::Color clear_color() override { return baphy::rgb(16, 16, 16); }
 
-  void update(const double dt) override { theta += 90.0 * dt; }
+  void update(const double dt) override {
+    theta += 90.0 * dt;
+
+    if (input.key_pressed(baphy::Key::Escape))
+      window.set_should_close(true);
+  }
 
   void draw() override {
     const auto center = window.center();
@@ -27,13 +32,7 @@ public:
     const auto y = center.y + 50.0 * std::sin(glm::radians(theta));
     painter.square({x - 25.0, y - 25.0}, 50.0, baphy::rgb(0, 255, 255));
 
-    painter.line(
-        center, {input.mouse.x, input.mouse.y}, baphy::rgb(255, 0, 255));
-  }
-
-  void keyboard_callback(const baphy::KeyboardEvent &e) override {
-    if (e.key == baphy::Key::Escape && e.action == baphy::Action::Up)
-      window.set_should_close(true);
+    painter.line(center, input.mouse_pos(), baphy::rgb(255, 0, 255));
   }
 };
 

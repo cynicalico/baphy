@@ -102,6 +102,7 @@ void baphy::Runner::run_() {
   frame_counter.reset();
 
   while (!window->should_close()) {
+    input->prev_propagate_();
     poll_events_();
     app_->update(as_secs_dt(frame_counter.dt()));
 
