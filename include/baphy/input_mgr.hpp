@@ -28,17 +28,17 @@ public:
   [[nodiscard]] glm::vec2 mouse_prev_pos() const { return mouse.prev_pos; }
   [[nodiscard]] glm::vec2 mouse_wheel() const { return mouse.wheel; }
 
-  bool button_pressed(Button button) const;
-  bool button_released(Button button) const;
-  bool button_down(Button button) const;
+  [[nodiscard]] bool button_pressed(Button button) const;
+  [[nodiscard]] bool button_released(Button button) const;
+  [[nodiscard]] bool button_down(Button button) const;
 
-  bool key_pressed(Key key) const;
-  bool key_released(Key key) const;
-  bool key_down(Key key) const;
+  [[nodiscard]] bool key_pressed(Key key) const;
+  [[nodiscard]] bool key_released(Key key) const;
+  [[nodiscard]] bool key_down(Key key) const;
 
-  bool scancode_pressed(Scancode scancode) const;
-  bool scancode_released(Scancode scancode) const;
-  bool scancode_down(Scancode scancode) const;
+  [[nodiscard]] bool scancode_pressed(Scancode scancode) const;
+  [[nodiscard]] bool scancode_released(Scancode scancode) const;
+  [[nodiscard]] bool scancode_down(Scancode scancode) const;
 
 private:
   Runner &runner_;
