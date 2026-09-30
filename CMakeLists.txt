@@ -46,12 +46,13 @@ target_sources(
         "src/baphy/log.cpp"
         "src/baphy/painter.cpp"
         "src/baphy/runner.cpp"
+        "src/baphy/timer_mgr.cpp"
         "src/baphy/util/averagers.cpp"
         "src/baphy/util/envvars.cpp"
         "src/baphy/util/io.cpp"
         "src/baphy/util/time.cpp"
         "src/baphy/window.cpp"
-        # [[[end]]] (sum: +Cm9KVqiPo)
+        # [[[end]]] (sum: 1P57oGvzWa)
 
         PUBLIC
         FILE_SET headers
@@ -81,6 +82,7 @@ target_sources(
         "include/baphy/log.hpp"
         "include/baphy/painter.hpp"
         "include/baphy/runner.hpp"
+        "include/baphy/timer_mgr.hpp"
         "include/baphy/util/averagers.hpp"
         "include/baphy/util/enum_class_bitops.hpp"
         "include/baphy/util/envvars.hpp"
@@ -88,7 +90,7 @@ target_sources(
         "include/baphy/util/platform.hpp"
         "include/baphy/util/time.hpp"
         "include/baphy/window.hpp"
-        # [[[end]]] (sum: kq+9VKPrrq)
+        # [[[end]]] (sum: YRfmJA4PHz)
 )
 
 target_compile_features(baphy PRIVATE cxx_std_23)

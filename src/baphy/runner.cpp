@@ -29,9 +29,13 @@ baphy::Runner::~Runner() {
     imgui_ctx_ = nullptr;
   }
 
-  input.reset();
   painter.reset();
+
+  timers.reset();
+  input.reset();
+
   window.reset();
+
   SDL_Quit();
 
   nexus.reset();
@@ -94,6 +98,7 @@ void baphy::Runner::initialize_imgui_() {
 
 void baphy::Runner::initialize_other_() {
   input = std::make_unique<InputMgr>(*this);
+  timers = std::make_unique<TimerMgr>();
 
   painter = std::make_unique<Painter>();
 }
@@ -104,6 +109,8 @@ void baphy::Runner::run_() {
   while (!window->should_close()) {
     input->prev_propagate_();
     poll_events_();
+
+    timers->update_(as_secs_dt(frame_counter.dt()));
     app_->update(as_secs_dt(frame_counter.dt()));
 
     ImGui_ImplOpenGL3_NewFrame();

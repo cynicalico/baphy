@@ -8,6 +8,7 @@
 #include "baphy/application.hpp"
 #include "baphy/input_mgr.hpp"
 #include "baphy/painter.hpp"
+#include "baphy/timer_mgr.hpp"
 #include "baphy/util/time.hpp"
 #include "baphy/window.hpp"
 #include "implot.h"
@@ -22,6 +23,7 @@ public:
   std::unique_ptr<nexus::Nexus> nexus{nullptr};
   std::unique_ptr<Window> window{nullptr};
   std::unique_ptr<InputMgr> input{nullptr};
+  std::unique_ptr<TimerMgr> timers{nullptr};
   std::unique_ptr<Painter> painter{nullptr};
 
   Runner();

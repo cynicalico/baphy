@@ -132,7 +132,16 @@ void baphy::InputMgr::keyboard_callback_(const KeyboardEvent &e) {
 }
 
 void baphy::InputMgr::mouse_button_callback_(const MouseButtonEvent &e) {
-  // TODO
+  switch (e.action) {
+  case Action::Down:
+    mouse.buttons_state[e.button] = true;
+    break;
+  case Action::Up:
+    mouse.buttons_state[e.button] = false;
+    break;
+  case Action::Repeat:
+    std::unreachable();
+  }
 }
 
 void baphy::InputMgr::mouse_motion_callback_(const MouseMotionEvent &e) {
