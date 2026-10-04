@@ -1,6 +1,9 @@
 #include "baphy/painter.hpp"
 #include <array>
 #include <glm/gtc/type_ptr.hpp>
+#include <numbers>
+#include <stack>
+#include <tuple>
 
 constexpr auto PRIMITIVE_VERT_SRC = R"glsl(
 #version 460 core
@@ -68,7 +71,7 @@ void baphy::Painter::point(glm::vec2 p0, const Color &color) {
 void baphy::Painter::line(const glm::vec2 p0,
                           const glm::vec2 p1,
                           const Color &color) {
-  const auto v0 = glm::vec3(p1, 0.0f) - glm::vec3(p0, 0.0f);
+  const auto v0 = glm::vec3(p1 + 0.5f, 0.0f) - glm::vec3(p0 + 0.5f, 0.0f);
   constexpr auto v1 = glm::vec3(0.0f, 0.0f, 1.0f);
   const auto cross = glm::normalize(glm::cross(v0, v1));
 
@@ -115,6 +118,59 @@ void baphy::Painter::square(const glm::vec2 p0,
                             const float size,
                             const Color &color) {
   rect(p0, {size, size}, color);
+}
+
+static glm::vec2
+point_on_ellipse(glm::vec2 center, glm::vec2 size, float theta) {
+  return {center.x + size.x * std::cos(theta),
+          center.y + size.y * std::sin(theta)};
+}
+
+void baphy::Painter::ellipse(glm::vec2 center,
+                             glm::vec2 size,
+                             const Color &color) {
+  constexpr auto t0 = glm::radians(0.0f);
+  const auto p0 = point_on_ellipse(center, size, t0);
+
+  constexpr auto t1 = glm::radians(120.0f);
+  const auto p1 = point_on_ellipse(center, size, t1);
+
+  constexpr auto t2 = glm::radians(240.0f);
+  const auto p2 = point_on_ellipse(center, size, t2);
+
+  tri(p0, p1, p2, color);
+
+  // we need this because the midpoint calculation won't work otherwise
+  constexpr auto t3 = glm::radians(360.0f);
+  const auto p3 = point_on_ellipse(center, size, t3);
+
+  auto base_points =
+      std::stack<std::tuple<glm::vec2, float, glm::vec2, float>>();
+  base_points.emplace(p0, t0, p1, t1);
+  base_points.emplace(p1, t1, p2, t2);
+  base_points.emplace(p2, t2, p3, t3);
+
+  while (!base_points.empty()) {
+    const auto [pa, ta, pb, tb] = base_points.top();
+    base_points.pop();
+
+    const auto tm = (ta + tb) / 2.0f;
+    const auto pm = point_on_ellipse(center, size, tm);
+
+    const auto mid = (pa + pb) / 2.0f;
+    const auto dist2 =
+        (pm.x - mid.x) * (pm.x - mid.x) + (pm.y - mid.y) * (pm.y - mid.y);
+    if (dist2 >= 0.5 * 0.5) {
+      tri(pa, pm, pb, color);
+
+      base_points.emplace(pa, ta, pm, tm);
+      base_points.emplace(pm, tm, pb, tb);
+    }
+  }
+}
+
+void baphy::Painter::circle(glm::vec2 center, float size, const Color &color) {
+  ellipse(center, {size, size}, color);
 }
 
 void baphy::Painter::draw(const glm::mat4 &projection) {

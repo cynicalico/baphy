@@ -7,7 +7,7 @@ public:
   baphy::TimerMgr &timers;
   baphy::Painter &painter;
 
-  double theta{0.0};
+  float theta{0.0f};
 
   explicit Example(baphy::Runner &runner)
       : Application(runner),
@@ -18,33 +18,21 @@ public:
     runner.show_fps = true;
 
     window.set_swap_interval(baphy::SwapInterval::Adaptive);
-
-    timers.every(1.0, [&] {
-      BAPHY_LOG_INFO("test 2");
-    });
   }
 
   baphy::Color clear_color() override { return baphy::rgb(16, 16, 16); }
 
   void update(const double dt) override {
-    theta += 90.0 * dt;
+    theta += 45.0 * dt;
 
     if (input.key_pressed(baphy::Key::Escape))
       window.set_should_close(true);
-
-    if (input.button_pressed(baphy::Button::Left)) {
-      timers.after(1.0, [&] {
-        BAPHY_LOG_INFO("test");
-      });
-    }
   }
 
   void draw() override {
-    const auto center = window.center();
-
-    const auto x = center.x + 50.0 * std::cos(glm::radians(theta));
-    const auto y = center.y + 50.0 * std::sin(glm::radians(theta));
-    painter.square({x - 25.0, y - 25.0}, 50.0, baphy::rgb(0, 255, 255));
+    const auto x = 10.0f + 25.0f * std::abs(std::cos(glm::radians(3 * theta)));
+    const auto y = 10.0f + 25.0f * std::abs(std::sin(glm::radians(5 * theta)));
+    painter.ellipse(window.center(), {x, y}, baphy::rgb(0, 255, 255));
   }
 };
 

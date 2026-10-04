@@ -29,6 +29,8 @@ public:
   void tri(glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, const Color &color);
   void rect(glm::vec2 p0, glm::vec2 size, const Color &color);
   void square(glm::vec2 p0, float size, const Color &color);
+  void ellipse(glm::vec2 center, glm::vec2 size, const Color &color);
+  void circle(glm::vec2 center, float size, const Color &color);
 
   void draw(const glm::mat4 &projection);
 
