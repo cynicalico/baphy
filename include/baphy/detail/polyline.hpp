@@ -2,14 +2,14 @@
 #define BAPHY_DETAIL_POLYLINE_HPP
 
 /**
- * I have searched for a long time for resources on drawing polylines and had
- * basically zero luck. There aren't any libraries I can find either that
- * seem viable for integrating into the library either.
+ * I have searched for a long time for resources on drawing polylines and have
+ * had basically zero luck. There aren't any libraries I can find that seem
+ * viable for integrating into the library either.
  *
  * Out of desperation, since I do not know how to figure out the math myself,
- * I asked Claude to produce a polyline triangulation for me. Because I do
- * not entirely understand how this code works, I have decided to put it in its
- * own file to keep it somewhat isolated from everything else.
+ * I asked Claude to produce a polyline triangulation for me. Since I do not
+ * entirely understand how this code works, I have decided to put it in its own
+ * file to keep it somewhat isolated from everything else.
  */
 
 #include <array>
