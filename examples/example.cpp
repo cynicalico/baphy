@@ -55,9 +55,10 @@ public:
     }
 
     for (const auto &p: base_points)
-      painter.circle(p, 9.0, baphy::rgb(255, 0, 0));
+      painter.fill_circle(p, 9.0, baphy::rgb(255, 0, 0));
     for (const auto &p: points)
-      painter.circle(p, 7.0, baphy::rgb(0, 255, 0));
+      painter.fill_circle(p, 7.0, baphy::rgb(0, 255, 0));
+
     painter.polyline(
         points, 5.0, true, baphy::LineJoin::round, baphy::rgb(255, 255, 255));
   }

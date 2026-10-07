@@ -68,7 +68,7 @@ baphy::Painter::~Painter() {
 }
 
 void baphy::Painter::point(glm::vec2 p0, const Color &color) {
-  square(p0, 1.0f, color);
+  fill_square(p0, 1.0f, color);
 }
 
 void baphy::Painter::line(const glm::vec2 p0,
@@ -83,8 +83,8 @@ void baphy::Painter::line(const glm::vec2 p0,
   const auto c = p1 + offset;
   const auto d = p1 - offset;
 
-  tri(a, c, d, color);
-  tri(a, d, b, color);
+  fill_tri(a, c, d, color);
+  fill_tri(a, d, b, color);
 }
 
 void baphy::Painter::polyline(std::span<const glm::vec2> points,
@@ -95,13 +95,13 @@ void baphy::Painter::polyline(std::span<const glm::vec2> points,
   std::vector<std::array<glm::vec2, 3>> tris;
   detail::triangulate_polyline(points, width, closed, join, tris);
   for (const auto &t: tris)
-    tri(t[0], t[1], t[2], color);
+    fill_tri(t[0], t[1], t[2], color);
 }
 
-void baphy::Painter::tri(const glm::vec2 p0,
-                         const glm::vec2 p1,
-                         const glm::vec2 p2,
-                         const Color &color) {
+void baphy::Painter::fill_tri(const glm::vec2 p0,
+                              const glm::vec2 p1,
+                              const glm::vec2 p2,
+                              const Color &color) {
   if (!primitive_vbos_[curr_primitive_vbo_idx_]->can_fit(3)) {
     curr_primitive_vbo_idx_++;
     if (primitive_vbos_.size() <= curr_primitive_vbo_idx_) {
@@ -119,22 +119,20 @@ void baphy::Painter::tri(const glm::vec2 p0,
   });
 }
 
-void baphy::Painter::rect(const glm::vec2 p0,
-                          const glm::vec2 size,
-                          const Color &color) {
-  tri(p0, p0 + glm::vec2{size.x, 0.0f}, p0 + size, color);
-  tri(p0, p0 + size, p0 + glm::vec2{0.0f, size.y}, color);
+void baphy::Painter::fill_rect(const glm::vec2 p0,
+                               const glm::vec2 size,
+                               const Color &color) {
+  fill_tri(p0, p0 + glm::vec2{size.x, 0.0f}, p0 + size, color);
+  fill_tri(p0, p0 + size, p0 + glm::vec2{0.0f, size.y}, color);
 }
 
-void baphy::Painter::square(const glm::vec2 p0,
-                            const float size,
-                            const Color &color) {
-  rect(p0, {size, size}, color);
+void baphy::Painter::fill_square(
+    const glm::vec2 p0, const float size, const Color &color) {
+  fill_rect(p0, {size, size}, color);
 }
 
-void baphy::Painter::ellipse(glm::vec2 center,
-                             glm::vec2 size,
-                             const Color &color) {
+void baphy::Painter::fill_ellipse(
+    glm::vec2 center, glm::vec2 size, const Color &color) {
   constexpr auto t0 = glm::radians(0.0f);
   const auto p0 = point_on_ellipse(center, size, t0);
 
@@ -144,7 +142,7 @@ void baphy::Painter::ellipse(glm::vec2 center,
   constexpr auto t2 = glm::radians(240.0f);
   const auto p2 = point_on_ellipse(center, size, t2);
 
-  tri(p0, p1, p2, color);
+  fill_tri(p0, p1, p2, color);
 
   // we need this because the midpoint calculation won't work otherwise
   constexpr auto t3 = glm::radians(360.0f);
@@ -167,7 +165,7 @@ void baphy::Painter::ellipse(glm::vec2 center,
     const auto dist2 = glm::dot(pm - mid, pm - mid);
     // skip any vectors with a length less than 0.5
     if (dist2 >= 0.5 * 0.5) {
-      tri(pa, pm, pb, color);
+      fill_tri(pa, pm, pb, color);
 
       base_points.emplace(pa, ta, pm, tm);
       base_points.emplace(pm, tm, pb, tb);
@@ -175,8 +173,9 @@ void baphy::Painter::ellipse(glm::vec2 center,
   }
 }
 
-void baphy::Painter::circle(glm::vec2 center, float size, const Color &color) {
-  ellipse(center, {size, size}, color);
+void baphy::Painter::fill_circle(
+    glm::vec2 center, float size, const Color &color) {
+  fill_ellipse(center, {size, size}, color);
 }
 
 void baphy::Painter::draw(const glm::mat4 &projection) {
