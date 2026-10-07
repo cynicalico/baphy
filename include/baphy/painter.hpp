@@ -3,8 +3,10 @@
 
 #include <glm/glm.hpp>
 #include <memory>
+#include <span>
 #include <vector>
 #include "baphy/color.hpp"
+#include "baphy/detail/polyline.hpp"
 #include "baphy/glh/glh.hpp"
 
 namespace baphy {
@@ -25,10 +27,19 @@ public:
   Painter &operator=(Painter &&other) noexcept = delete;
 
   void point(glm::vec2 p0, const Color &color);
-  void line(glm::vec2 p0, glm::vec2 p1, const Color &color);
+
+  void line(glm::vec2 p0, glm::vec2 p1, float width, const Color &color);
+  void polyline(std::span<const glm::vec2> points,
+                float width,
+                bool closed,
+                LineJoin join,
+                const Color &color);
+
   void tri(glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, const Color &color);
+
   void rect(glm::vec2 p0, glm::vec2 size, const Color &color);
   void square(glm::vec2 p0, float size, const Color &color);
+
   void ellipse(glm::vec2 center, glm::vec2 size, const Color &color);
   void circle(glm::vec2 center, float size, const Color &color);
 

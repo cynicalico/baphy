@@ -1,9 +1,12 @@
 #include "baphy/painter.hpp"
+#include <algorithm>
 #include <array>
+#include <cmath>
 #include <glm/gtc/type_ptr.hpp>
 #include <numbers>
 #include <stack>
 #include <tuple>
+#include "baphy/util/math.hpp"
 
 constexpr auto PRIMITIVE_VERT_SRC = R"glsl(
 #version 460 core
@@ -70,20 +73,29 @@ void baphy::Painter::point(glm::vec2 p0, const Color &color) {
 
 void baphy::Painter::line(const glm::vec2 p0,
                           const glm::vec2 p1,
+                          const float width,
                           const Color &color) {
-  const auto v0 = glm::vec3(p1 + 0.5f, 0.0f) - glm::vec3(p0 + 0.5f, 0.0f);
-  constexpr auto v1 = glm::vec3(0.0f, 0.0f, 1.0f);
-  const auto cross = glm::normalize(glm::cross(v0, v1));
+  const auto half_w = width / 2.0f;
+  const auto offset = perp(glm::normalize(p1 - p0)) * half_w;
 
-  constexpr auto line_width = 1.0f;
-
-  const auto a = p0 + (line_width / 2.0f) * glm::vec2(cross);
-  const auto b = p0 - (line_width / 2.0f) * glm::vec2(cross);
-  const auto c = p1 + (line_width / 2.0f) * glm::vec2(cross);
-  const auto d = p1 - (line_width / 2.0f) * glm::vec2(cross);
+  const auto a = p0 + offset;
+  const auto b = p0 - offset;
+  const auto c = p1 + offset;
+  const auto d = p1 - offset;
 
   tri(a, c, d, color);
   tri(a, d, b, color);
+}
+
+void baphy::Painter::polyline(std::span<const glm::vec2> points,
+                              const float width,
+                              bool closed,
+                              const LineJoin join,
+                              const Color &color) {
+  std::vector<std::array<glm::vec2, 3>> tris;
+  detail::triangulate_polyline(points, width, closed, join, tris);
+  for (const auto &t: tris)
+    tri(t[0], t[1], t[2], color);
 }
 
 void baphy::Painter::tri(const glm::vec2 p0,
@@ -95,7 +107,7 @@ void baphy::Painter::tri(const glm::vec2 p0,
     if (primitive_vbos_.size() <= curr_primitive_vbo_idx_) {
       primitive_vbos_.emplace_back(
           std::make_unique<glh::VecBuffer<PrimitiveVertex>>(
-              PRIMITIVE_BATCH_SIZE));
+              PRIMITIVE_BATCH_SIZE, glh::FillDirection::Reverse));
     }
   }
 
@@ -118,12 +130,6 @@ void baphy::Painter::square(const glm::vec2 p0,
                             const float size,
                             const Color &color) {
   rect(p0, {size, size}, color);
-}
-
-static glm::vec2
-point_on_ellipse(glm::vec2 center, glm::vec2 size, float theta) {
-  return {center.x + size.x * std::cos(theta),
-          center.y + size.y * std::sin(theta)};
 }
 
 void baphy::Painter::ellipse(glm::vec2 center,
@@ -158,8 +164,8 @@ void baphy::Painter::ellipse(glm::vec2 center,
     const auto pm = point_on_ellipse(center, size, tm);
 
     const auto mid = (pa + pb) / 2.0f;
-    const auto dist2 =
-        (pm.x - mid.x) * (pm.x - mid.x) + (pm.y - mid.y) * (pm.y - mid.y);
+    const auto dist2 = glm::dot(pm - mid, pm - mid);
+    // skip any vectors with a length less than 0.5
     if (dist2 >= 0.5 * 0.5) {
       tri(pa, pm, pb, color);
 
@@ -174,6 +180,8 @@ void baphy::Painter::circle(glm::vec2 center, float size, const Color &color) {
 }
 
 void baphy::Painter::draw(const glm::mat4 &projection) {
+  glDepthFunc(GL_GREATER);
+
   for (const auto &vbo: primitive_vbos_)
     vbo->sync();
 
@@ -191,6 +199,8 @@ void baphy::Painter::draw(const glm::mat4 &projection) {
                  static_cast<GLint>(vbo->front()),
                  static_cast<GLsizei>(vbo->size()));
   }
+
+  glDepthFunc(GL_LESS);
 
   // TODO: Some kind of checking for unused batches to
   //       save on memory after spikes

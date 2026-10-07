@@ -38,6 +38,7 @@ target_sources(
         "src/baphy/application.cpp"
         "src/baphy/baphy.cpp"
         "src/baphy/color.cpp"
+        "src/baphy/detail/polyline.cpp"
         "src/baphy/gl.cpp"
         "src/baphy/glh/buffer.cpp"
         "src/baphy/glh/shader.cpp"
@@ -50,9 +51,10 @@ target_sources(
         "src/baphy/util/averagers.cpp"
         "src/baphy/util/envvars.cpp"
         "src/baphy/util/io.cpp"
+        "src/baphy/util/math.cpp"
         "src/baphy/util/time.cpp"
         "src/baphy/window.cpp"
-        # [[[end]]] (sum: 1P57oGvzWa)
+        # [[[end]]] (sum: 8nqctE4uvS)
 
         PUBLIC
         FILE_SET headers
@@ -68,6 +70,7 @@ target_sources(
         "include/baphy/application.hpp"
         "include/baphy/baphy.hpp"
         "include/baphy/color.hpp"
+        "include/baphy/detail/polyline.hpp"
         "include/baphy/event/all.hpp"
         "include/baphy/event/common.hpp"
         "include/baphy/event/keyboard.hpp"
@@ -87,10 +90,11 @@ target_sources(
         "include/baphy/util/enum_class_bitops.hpp"
         "include/baphy/util/envvars.hpp"
         "include/baphy/util/io.hpp"
+        "include/baphy/util/math.hpp"
         "include/baphy/util/platform.hpp"
         "include/baphy/util/time.hpp"
         "include/baphy/window.hpp"
-        # [[[end]]] (sum: YRfmJA4PHz)
+        # [[[end]]] (sum: 7sZDrGI02I)
 )
 
 target_compile_features(baphy PRIVATE cxx_std_23)
