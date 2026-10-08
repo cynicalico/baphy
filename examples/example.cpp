@@ -2,69 +2,50 @@
 
 class Example final : public baphy::Application {
 public:
-  baphy::Window &window;
-  baphy::InputMgr &input;
-  baphy::TimerMgr &timers;
-  baphy::Painter &painter;
+    baphy::Window &window;
+    baphy::InputMgr &input;
+    baphy::TimerMgr &timers;
+    baphy::Painter &painter;
 
-  float theta{0.0f};
-  std::array<float, 4> p_thetas{0.0f, 0.0f, 0.0f, 0.0f};
+    std::unique_ptr<baphy::glh::Texture> texture{nullptr};
+    float theta{0.0f};
 
-  explicit Example(baphy::Runner &runner)
-      : Application(runner),
-        window(*runner.window),
-        input(*runner.input),
-        timers(*runner.timers),
-        painter(*runner.painter) {
-    runner.show_fps = true;
+    explicit Example(baphy::Runner &runner)
+        : Application(runner),
+          window(*runner.window),
+          input(*runner.input),
+          timers(*runner.timers),
+          painter(*runner.painter) {
+        runner.show_fps = true;
+        window.set_swap_interval(baphy::SwapInterval::Adaptive);
 
-    window.set_swap_interval(baphy::SwapInterval::Adaptive);
-  }
-
-  baphy::Color clear_color() override { return baphy::rgb(16, 16, 16); }
-
-  void update(const double dt) override {
-    theta += 20.0f * dt;
-    p_thetas[0] += 30.0f * dt;
-    p_thetas[1] += 40.0f * dt;
-    p_thetas[2] += 50.0f * dt;
-    p_thetas[3] += 60.0f * dt;
-
-    if (input.key_pressed(baphy::Key::Escape))
-      window.set_should_close(true);
-  }
-
-  void draw() override {
-    std::vector<glm::vec2> base_points;
-    std::vector<glm::vec2> points;
-
-    const auto r = std::min(window.w() / 3.0f, window.h() / 3.0f);
-
-    for (const auto &[i, sub_t]: p_thetas | std::views::enumerate) {
-      const auto t = glm::radians(theta + i * 90.0f);
-      const auto bx = r * std::cos(t);
-      const auto by = r * std::sin(t);
-
-      base_points.emplace_back(window.center() + glm::vec2(bx, by));
-
-      const auto dir = i % 2 == 0 ? 1 : -1;
-      const auto x = (r / 3.0f) * std::cos(glm::radians(dir * sub_t));
-      const auto y = (r / 3.0f) * std::sin(glm::radians(dir * sub_t));
-
-      points.emplace_back(base_points[i] + glm::vec2(x, y));
+        texture = baphy::glh::load_texture("examples/assets/bulbasaur.png");
     }
 
-    for (const auto &p: base_points)
-      painter.fill_circle(p, 9.0, baphy::rgb(255, 0, 0));
-    for (const auto &p: points)
-      painter.fill_circle(p, 7.0, baphy::rgb(0, 255, 0));
+    baphy::Color clear_color() override { return baphy::rgb(16, 16, 16); }
 
-    painter.polyline(
-        points, 5.0, true, baphy::LineJoin::round, baphy::rgb(255, 255, 255));
-  }
+    void update(const double dt) override {
+        theta += glm::radians(static_cast<float>(dt) * 90.0f);
+
+        if (input.key_pressed(baphy::Key::Escape))
+            window.set_should_close(true);
+    }
+
+    void draw() override {
+        const float scale = 3.0f;
+        const auto p = window.center() + glm::vec2{std::cos(theta), std::sin(theta)} * (scale * 16.0f);
+
+        painter.fill_circle(p, scale * 32.0f, baphy::rgb(255, 0, 0));
+
+        painter.tex(*texture,
+                    window.center() - scale * glm::vec2(texture->w, texture->h) / 2.0f,
+                    scale * glm::vec2{texture->w, texture->h});
+
+        painter.line({0, 0}, p, 32.0f, baphy::rgb(255, 0, 0));
+        painter.line({window.w(), window.h()}, p, 32.0f, baphy::rgba(0, 255, 0, 128));
+    }
 };
 
 int main(int, char *[]) {
-  return baphy::run<Example>(
-      {.title = "Example", .size = {960, 720}, .resizable = false});
+    return baphy::run<Example>({.title = "Example", .size = {960, 720}, .resizable = false});
 }

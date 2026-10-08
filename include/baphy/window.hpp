@@ -8,58 +8,58 @@
 
 namespace baphy {
 struct WindowOpts {
-  std::string title{"baphy Application"};
-  glm::ivec2 size{800, 600};
-  bool resizable{false};
+    std::string title{"baphy Application"};
+    glm::ivec2 size{800, 600};
+    bool resizable{false};
 };
 
 enum class SwapInterval {
-  Immediate,
-  VSync,
-  Adaptive,
+    Immediate,
+    VSync,
+    Adaptive,
 };
 
 class Window {
 public:
-  explicit Window(const WindowOpts &opts);
-  ~Window();
+    explicit Window(const WindowOpts &opts);
+    ~Window();
 
-  Window(const Window &) = delete;
-  Window &operator=(const Window &) = delete;
+    Window(const Window &) = delete;
+    Window &operator=(const Window &) = delete;
 
-  Window(Window &&) noexcept;
-  Window &operator=(Window &&) noexcept;
+    Window(Window &&) noexcept;
+    Window &operator=(Window &&) noexcept;
 
-  [[nodiscard]] SDL_Window *handle() const;
-  [[nodiscard]] SDL_GLContext context() const;
+    [[nodiscard]] SDL_Window *handle() const;
+    [[nodiscard]] SDL_GLContext context() const;
 
-  [[nodiscard]] bool should_close() const;
-  void set_should_close(bool should_close);
+    [[nodiscard]] bool should_close() const;
+    void set_should_close(bool should_close);
 
-  void set_size(glm::ivec2 size);
-  void set_w(int w);
-  void set_h(int h);
-  [[nodiscard]] glm::ivec2 size() const;
-  [[nodiscard]] int w() const;
-  [[nodiscard]] int h() const;
+    void set_size(glm::ivec2 size);
+    void set_w(int w);
+    void set_h(int h);
+    [[nodiscard]] glm::ivec2 size() const;
+    [[nodiscard]] int w() const;
+    [[nodiscard]] int h() const;
 
-  void set_resizable(bool resizable);
-  [[nodiscard]] bool resizable() const;
+    void set_resizable(bool resizable);
+    [[nodiscard]] bool resizable() const;
 
-  bool set_swap_interval(SwapInterval interval);
-  [[nodiscard]] SwapInterval swap_interval() const;
+    bool set_swap_interval(SwapInterval interval);
+    [[nodiscard]] SwapInterval swap_interval() const;
 
-  [[nodiscard]] glm::mat4 ortho_projection() const;
+    [[nodiscard]] glm::mat4 ortho_projection() const;
 
-  [[nodiscard]] glm::vec2 center() const;
+    [[nodiscard]] glm::vec2 center() const;
 
-  void swap_buffers();
+    void swap_buffers();
 
 private:
-  bool should_close_{false};
+    bool should_close_{false};
 
-  SDL_Window *handle_{nullptr};
-  SDL_GLContext context_{nullptr};
+    SDL_Window *handle_{nullptr};
+    SDL_GLContext context_{nullptr};
 };
 } // namespace baphy
 

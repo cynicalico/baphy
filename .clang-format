@@ -2,7 +2,7 @@
 ---
 Language: Cpp
 BasedOnStyle: clang-format
-AccessModifierOffset: -2
+AccessModifierOffset: -4
 AllowShortCaseExpressionOnASingleLine: true
 AllowShortBlocksOnASingleLine: Empty
 AllowShortCaseLabelsOnASingleLine: false
@@ -42,9 +42,9 @@ BraceWrapping:
 BreakBeforeBraces: Attach
 BreakConstructorInitializers: BeforeColon
 BreakConstructorInitializersBeforeComma: false
-ColumnLimit: 80
+ColumnLimit: 120
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
-ContinuationIndentWidth: 4
+ContinuationIndentWidth: 8
 IncludeCategories:
   - Regex: '^<.*'
     Priority: 1
@@ -54,7 +54,7 @@ IncludeCategories:
     Priority: 3
 IncludeIsMainRegex: '([-_](test|unittest))?$'
 IndentCaseLabels: false
-IndentWidth: 2
+IndentWidth: 4
 InsertNewlineAtEOF: true
 MacroBlockBegin: ''
 MacroBlockEnd: ''
@@ -68,6 +68,6 @@ SpacesInAngles: Never
 SpacesInConditionalStatement: false
 SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
-TabWidth: 2
+TabWidth: 4
 PenaltyIndentedWhitespace: 1
 ...

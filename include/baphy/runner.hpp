@@ -16,56 +16,56 @@
 namespace baphy {
 class Runner {
 public:
-  FrameCounter<> frame_counter{};
-  bool first_frame{true};
-  bool show_fps{false};
+    FrameCounter<> frame_counter{};
+    bool first_frame{true};
+    bool show_fps{false};
 
-  std::unique_ptr<nexus::Nexus> nexus{nullptr};
-  std::unique_ptr<Window> window{nullptr};
-  std::unique_ptr<InputMgr> input{nullptr};
-  std::unique_ptr<TimerMgr> timers{nullptr};
-  std::unique_ptr<Painter> painter{nullptr};
+    std::unique_ptr<nexus::Nexus> nexus{nullptr};
+    std::unique_ptr<Window> window{nullptr};
+    std::unique_ptr<InputMgr> input{nullptr};
+    std::unique_ptr<TimerMgr> timers{nullptr};
+    std::unique_ptr<Painter> painter{nullptr};
 
-  Runner();
-  ~Runner();
+    Runner();
+    ~Runner();
 
-  Runner(const Runner &) = delete;
-  Runner &operator=(const Runner &) = delete;
+    Runner(const Runner &) = delete;
+    Runner &operator=(const Runner &) = delete;
 
-  Runner(Runner &&) noexcept = delete;
-  Runner &operator=(Runner &&) noexcept = delete;
+    Runner(Runner &&) noexcept = delete;
+    Runner &operator=(Runner &&) noexcept = delete;
 
-  template<typename T>
-    requires std::is_base_of_v<Application, T>
-  void run(const WindowOpts &opts);
+    template<typename T>
+        requires std::is_base_of_v<Application, T>
+    void run(const WindowOpts &opts);
 
 private:
-  ImGuiContext *imgui_ctx_{nullptr};
-  ImPlotContext *implot_ctx_{nullptr};
+    ImGuiContext *imgui_ctx_{nullptr};
+    ImPlotContext *implot_ctx_{nullptr};
 
-  std::unique_ptr<Application> app_{nullptr};
+    std::unique_ptr<Application> app_{nullptr};
 
-  void open_window_(const WindowOpts &opts);
-  void initialize_imgui_();
-  void initialize_other_();
+    void open_window_(const WindowOpts &opts);
+    void initialize_imgui_();
+    void initialize_other_();
 
-  void run_();
-  void poll_events_();
-  void draw_fps_overlay_();
+    void run_();
+    void poll_events_();
+    void draw_fps_overlay_();
 };
 
 template<typename T>
-  requires std::is_base_of_v<Application, T>
+    requires std::is_base_of_v<Application, T>
 void Runner::run(const WindowOpts &opts) {
-  open_window_(opts);
-  initialize_imgui_();
-  initialize_other_();
+    open_window_(opts);
+    initialize_imgui_();
+    initialize_other_();
 
-  app_ = std::make_unique<T>(*this);
+    app_ = std::make_unique<T>(*this);
 
-  run_();
+    run_();
 
-  app_.reset();
+    app_.reset();
 }
 } // namespace baphy
 

@@ -6,46 +6,46 @@
 namespace baphy {
 class CMA {
 public:
-  explicit CMA(std::size_t sample_count);
+    explicit CMA(std::size_t sample_count);
 
-  void update(double v);
+    void update(double v);
 
-  double value() const;
+    double value() const;
 
-  std::size_t samples() const;
+    std::size_t samples() const;
 
 private:
-  double value_;
-  std::size_t sample_count_;
+    double value_;
+    std::size_t sample_count_;
 };
 
 class EMA {
 public:
-  double alpha;
+    double alpha;
 
-  explicit EMA(double alpha);
+    explicit EMA(double alpha);
 
-  void update(double v);
+    void update(double v);
 
-  double value() const;
+    double value() const;
 
 private:
-  double value_;
+    double value_;
 };
 
 class SMA {
 public:
-  std::size_t sample_count;
+    std::size_t sample_count;
 
-  explicit SMA(std::size_t sample_count);
+    explicit SMA(std::size_t sample_count);
 
-  void update(double v);
+    void update(double v);
 
-  double value() const;
+    double value() const;
 
 private:
-  std::deque<double> samples_;
-  double value_;
+    std::deque<double> samples_;
+    double value_;
 };
 } // namespace baphy
 

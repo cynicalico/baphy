@@ -19,9 +19,9 @@
 
 namespace baphy {
 enum class LineJoin {
-  bevel,
-  miter,
-  round,
+    bevel,
+    miter,
+    round,
 };
 
 namespace detail {
