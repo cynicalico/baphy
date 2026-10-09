@@ -42,13 +42,14 @@ target_sources(
         "src/baphy/detail/shader_uniform_loc_cache.cpp"
         "src/baphy/gl.cpp"
         "src/baphy/glh/buffer.cpp"
+        "src/baphy/glh/gl_texture.cpp"
         "src/baphy/glh/shader.cpp"
-        "src/baphy/glh/texture.cpp"
         "src/baphy/glh/vertex_array.cpp"
         "src/baphy/input_mgr.cpp"
         "src/baphy/log.cpp"
         "src/baphy/painter.cpp"
         "src/baphy/runner.cpp"
+        "src/baphy/texture.cpp"
         "src/baphy/timer_mgr.cpp"
         "src/baphy/util/averagers.cpp"
         "src/baphy/util/envvars.cpp"
@@ -56,7 +57,7 @@ target_sources(
         "src/baphy/util/math.cpp"
         "src/baphy/util/time.cpp"
         "src/baphy/window.cpp"
-        # [[[end]]] (sum: WJ9m/Avd4U)
+        # [[[end]]] (sum: e3xaUorHDM)
 
         PUBLIC
         FILE_SET headers
@@ -83,14 +84,15 @@ target_sources(
         "include/baphy/event/quit.hpp"
         "include/baphy/gl.hpp"
         "include/baphy/glh/buffer.hpp"
+        "include/baphy/glh/gl_texture.hpp"
         "include/baphy/glh/glh.hpp"
         "include/baphy/glh/shader.hpp"
-        "include/baphy/glh/texture.hpp"
         "include/baphy/glh/vertex_array.hpp"
         "include/baphy/input_mgr.hpp"
         "include/baphy/log.hpp"
         "include/baphy/painter.hpp"
         "include/baphy/runner.hpp"
+        "include/baphy/texture.hpp"
         "include/baphy/timer_mgr.hpp"
         "include/baphy/util/averagers.hpp"
         "include/baphy/util/enum_class_bitops.hpp"
@@ -100,7 +102,7 @@ target_sources(
         "include/baphy/util/platform.hpp"
         "include/baphy/util/time.hpp"
         "include/baphy/window.hpp"
-        # [[[end]]] (sum: 7i548nfuf0)
+        # [[[end]]] (sum: dmI1YqxgAq)
 )
 
 target_compile_features(baphy PRIVATE cxx_std_23)

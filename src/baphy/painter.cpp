@@ -153,13 +153,13 @@ void baphy::Painter::fill_circle(glm::vec2 center, float size, const Color &colo
     fill_ellipse(center, {size, size}, color);
 }
 
-void baphy::Painter::tex(glh::Texture &t, const glm::vec2 p0, const glm::vec2 size, const Color &color) {
+void baphy::Painter::tex(const Texture &t, const glm::vec2 p0, const glm::vec2 size, const Color &color) {
     if (!tex_vbos_->can_fit(6)) {
         save_draw_call_();
         tex_vbos_->advance();
     }
 
-    start_draw_call_(t.id);
+    start_draw_call_(t.id());
 
     const auto z = next_z_(GeometryType::translucent);
     const auto c = to_vertex_color(color);

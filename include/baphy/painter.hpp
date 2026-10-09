@@ -13,6 +13,7 @@
 #include "baphy/detail/shader_uniform_loc_cache.hpp"
 #include "baphy/detail/vbo_list.hpp"
 #include "baphy/glh/glh.hpp"
+#include "baphy/texture.hpp"
 
 namespace baphy {
 struct PrimitiveVertex {
@@ -52,7 +53,7 @@ public:
     void fill_ellipse(glm::vec2 center, glm::vec2 size, const Color &color);
     void fill_circle(glm::vec2 center, float size, const Color &color);
 
-    void tex(glh::Texture &t, glm::vec2 p0, glm::vec2 size, const Color &color = rgb(255, 255, 255));
+    void tex(const Texture &t, glm::vec2 p0, glm::vec2 size, const Color &color = rgb(255, 255, 255));
 
     void draw(const glm::mat4 &projection);
 

@@ -5,20 +5,48 @@
 #define BAPHY_VERSION_MINOR 1
 #define BAPHY_VERSION_PATCH 0
 
+/* #[[[cog
+from pathlib import Path
+for item in sorted(Path("include").rglob("*"), key=lambda e: e.as_posix()):
+    if item.is_file():
+        p = item.as_posix()
+        if "baphy.hpp" in p:
+            continue
+        p = p[p.find("include/") + len("include/"):]
+        cog.outl(f"#include \"{p}\"")
+]]] */
 #include "baphy/application.hpp"
+#include "baphy/color.hpp"
+#include "baphy/detail/polyline.hpp"
+#include "baphy/detail/shader_uniform_loc_cache.hpp"
+#include "baphy/detail/shaders.hpp"
+#include "baphy/detail/vbo_list.hpp"
 #include "baphy/event/all.hpp"
+#include "baphy/event/common.hpp"
+#include "baphy/event/keyboard.hpp"
+#include "baphy/event/mouse.hpp"
+#include "baphy/event/quit.hpp"
 #include "baphy/gl.hpp"
+#include "baphy/glh/buffer.hpp"
+#include "baphy/glh/gl_texture.hpp"
 #include "baphy/glh/glh.hpp"
 #include "baphy/glh/shader.hpp"
+#include "baphy/glh/vertex_array.hpp"
+#include "baphy/input_mgr.hpp"
 #include "baphy/log.hpp"
 #include "baphy/painter.hpp"
 #include "baphy/runner.hpp"
+#include "baphy/texture.hpp"
+#include "baphy/timer_mgr.hpp"
 #include "baphy/util/averagers.hpp"
+#include "baphy/util/enum_class_bitops.hpp"
 #include "baphy/util/envvars.hpp"
 #include "baphy/util/io.hpp"
+#include "baphy/util/math.hpp"
 #include "baphy/util/platform.hpp"
 #include "baphy/util/time.hpp"
 #include "baphy/window.hpp"
+/* [[[end]]] (sum: pDQFBYCNBr) */
 
 namespace baphy {
 const char *version();
