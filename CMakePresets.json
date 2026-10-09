@@ -7,8 +7,8 @@
   },
   "configurePresets": [
     {
-      "name": "debug",
-      "hidden": false,
+      "name": "debug-base",
+      "hidden": true,
       "binaryDir": "${sourceDir}/.build/debug",
       "generator": "Ninja",
       "cacheVariables": {
@@ -19,8 +19,8 @@
       }
     },
     {
-      "name": "release",
-      "hidden": false,
+      "name": "release-base",
+      "hidden": true,
       "binaryDir": "${sourceDir}/.build/release",
       "generator": "Ninja",
       "cacheVariables": {
@@ -28,6 +28,32 @@
         "CMAKE_EXPORT_COMPILE_COMMANDS": "ON",
         "BUILD_SHARED_LIBS": "OFF",
         "CPM_SOURCE_CACHE": "${sourceDir}/.cache/CPM"
+      }
+    },
+    {
+      "name": "debug",
+      "hidden": false,
+      "inherits": "debug-base"
+    },
+    {
+      "name": "release",
+      "hidden": false,
+      "inherits": "release-base"
+    },
+    {
+      "name": "debug-mold",
+      "hidden": false,
+      "inherits": "debug",
+      "cacheVariables": {
+        "CMAKE_LINKER_TYPE": "MOLD"
+      }
+    },
+    {
+      "name": "release-mold",
+      "hidden": false,
+      "inherits": "release",
+      "cacheVariables": {
+        "CMAKE_LINKER_TYPE": "MOLD"
       }
     }
   ]

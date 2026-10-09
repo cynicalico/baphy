@@ -30,30 +30,21 @@ public:
     VecBuffer(VecBuffer &&other) noexcept;
     VecBuffer &operator=(VecBuffer &&other) noexcept;
 
-    /// The first index of the buffer (see "first" argument in glDrawArrays)
     [[nodiscard]] std::size_t front() const;
-    /// The back index of the buffer (back - front is the "count")
     [[nodiscard]] std::size_t back() const;
-    /// Shortcut for back - front
     [[nodiscard]] std::size_t size() const;
-    /// Total capacity of the buffer
     [[nodiscard]] std::size_t capacity() const;
 
-    /// Clear the buffer
     void clear();
 
-    /// Checks if there is room for count elements to be pushed
     [[nodiscard]] bool can_fit(std::size_t count) const;
 
-    /// Push element into buffer, returns true if successful
     bool push(const T &v);
 
-    /// Push range of elements into buffer, returns true if successful
     template<std::ranges::contiguous_range R>
         requires std::same_as<T, std::ranges::range_value_t<R>>
     bool extend(const R &data);
 
-    /// Synchronize the buffer with the GPU
     void sync();
 
 private:
