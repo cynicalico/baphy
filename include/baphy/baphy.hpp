@@ -26,6 +26,7 @@ for item in sorted(Path("include").rglob("*"), key=lambda e: e.as_posix()):
 #include "baphy/event/keyboard.hpp"
 #include "baphy/event/mouse.hpp"
 #include "baphy/event/quit.hpp"
+#include "baphy/font/cp_437.hpp"
 #include "baphy/gl.hpp"
 #include "baphy/glh/buffer.hpp"
 #include "baphy/glh/gl_texture.hpp"
@@ -46,7 +47,7 @@ for item in sorted(Path("include").rglob("*"), key=lambda e: e.as_posix()):
 #include "baphy/util/platform.hpp"
 #include "baphy/util/time.hpp"
 #include "baphy/window.hpp"
-/* [[[end]]] (sum: pDQFBYCNBr) */
+/* [[[end]]] (sum: Y7MD/6PJ1h) */
 
 namespace baphy {
 const char *version();

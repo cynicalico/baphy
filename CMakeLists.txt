@@ -40,6 +40,7 @@ target_sources(
         "src/baphy/color.cpp"
         "src/baphy/detail/polyline.cpp"
         "src/baphy/detail/shader_uniform_loc_cache.cpp"
+        "src/baphy/font/cp_437.cpp"
         "src/baphy/gl.cpp"
         "src/baphy/glh/buffer.cpp"
         "src/baphy/glh/gl_texture.cpp"
@@ -57,7 +58,7 @@ target_sources(
         "src/baphy/util/math.cpp"
         "src/baphy/util/time.cpp"
         "src/baphy/window.cpp"
-        # [[[end]]] (sum: e3xaUorHDM)
+        # [[[end]]] (sum: LgLhEaWQvc)
 
         PUBLIC
         FILE_SET headers
@@ -82,6 +83,7 @@ target_sources(
         "include/baphy/event/keyboard.hpp"
         "include/baphy/event/mouse.hpp"
         "include/baphy/event/quit.hpp"
+        "include/baphy/font/cp_437.hpp"
         "include/baphy/gl.hpp"
         "include/baphy/glh/buffer.hpp"
         "include/baphy/glh/gl_texture.hpp"
@@ -102,7 +104,7 @@ target_sources(
         "include/baphy/util/platform.hpp"
         "include/baphy/util/time.hpp"
         "include/baphy/window.hpp"
-        # [[[end]]] (sum: dmI1YqxgAq)
+        # [[[end]]] (sum: 6OAMJpdU7C)
 )
 
 target_compile_features(baphy PRIVATE cxx_std_23)

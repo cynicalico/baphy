@@ -15,7 +15,7 @@ public:
     using iterator = std::vector<std::unique_ptr<vbo_t>>::iterator;
     using const_iterator = std::vector<std::unique_ptr<vbo_t>>::const_iterator;
 
-    VBOList(std::size_t vbo_size_, glh::FillDirection fill_direction);
+    VBOList(std::size_t vbo_size, glh::FillDirection fill_direction);
 
     void clear();
 

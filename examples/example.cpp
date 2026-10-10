@@ -6,7 +6,7 @@ public:
     baphy::Window &window;
     baphy::Painter &painter;
 
-    std::unique_ptr<baphy::Texture> texture{nullptr};
+    std::unique_ptr<baphy::CP437_Font> font{nullptr};
 
     explicit Example(baphy::Runner &runner);
 
@@ -25,7 +25,7 @@ Example::Example(baphy::Runner &runner)
     runner.show_fps = true;
     window.set_swap_interval(baphy::SwapInterval::Adaptive);
 
-    texture = std::make_unique<baphy::Texture>("examples/assets/bulbasaur.png");
+    font = std::make_unique<baphy::CP437_Font>(painter, "examples/assets/chunky_8x8.png", glm::vec2{8, 8});
 }
 
 baphy::Color Example::clear_color() {
@@ -33,8 +33,9 @@ baphy::Color Example::clear_color() {
 }
 
 void Example::draw() {
-    painter.tex_sub(
-            *texture, window.center() - texture->size_f() / 4.0f, std::nullopt, {0.0f, 0.0f}, texture->size_f() / 2.0f);
+    constexpr auto str = "Hello, world!";
+    const auto bounds = font->calc_bounds(str, 3.0f);
+    font->draw(str, window.center() - bounds / 2.0f, 3.0f);
 }
 
 void Example::keyboard_callback(const baphy::KeyboardEvent &e) {
