@@ -4,9 +4,9 @@
 #include <array>
 #include <cmath>
 #include <glm/gtc/type_ptr.hpp>
-#include <stack>
 #include <tuple>
-#include "baphy/detail/shaders.hpp"
+#include "baphy/detail/ellipse.hpp"
+#include "baphy/detail/shaders_src.hpp"
 #include "baphy/util/math.hpp"
 
 using Index = baphy::detail::VBOList<baphy::PrimitiveVertex>::index_t;
@@ -25,7 +25,7 @@ static constexpr std::size_t index_batch_size(const std::size_t vertex_batch_siz
 
 static_assert(sizeof(baphy::PrimitiveVertex) == 16);
 static_assert(sizeof(baphy::TextureVertex) == 24);
-constexpr std::size_t MAX_BATCH_BYTES = 2 * 1024 * 1024;
+constexpr std::size_t MAX_BATCH_BYTES = 1 * 1024 * 1024;
 constexpr std::size_t PRIMITIVE_BATCH_SIZE = vertex_batch_size(sizeof(baphy::PrimitiveVertex), MAX_BATCH_BYTES);
 constexpr std::size_t TEXTURE_BATCH_SIZE = vertex_batch_size(sizeof(baphy::TextureVertex), MAX_BATCH_BYTES);
 
@@ -51,7 +51,7 @@ baphy::Painter::Painter() {
                        glh::AttribBinding{"aColor", 4, GL_UNSIGNED_BYTE, true, offsetof(TextureVertex, color)},
                        glh::AttribBinding{"aTexCoord", 2, GL_FLOAT, false, offsetof(TextureVertex, tex_coord)}});
 
-    opaq_primitive_vbos_ = std::make_unique<detail::VBOList<PrimitiveVertex>>(
+    opaque_primitive_vbos_ = std::make_unique<detail::VBOList<PrimitiveVertex>>(
             PRIMITIVE_BATCH_SIZE, index_batch_size(PRIMITIVE_BATCH_SIZE), glh::FillDirection::Reverse);
 
     trans_primitive_vbos_ = std::make_unique<detail::VBOList<PrimitiveVertex>>(
@@ -65,7 +65,7 @@ void baphy::Painter::reset() {
     z_ = 1.0f;
     last_geometry_type_ = std::nullopt;
 
-    opaq_primitive_vbos_->clear();
+    opaque_primitive_vbos_->clear();
     trans_primitive_vbos_->clear();
     tex_vbos_->clear();
 
@@ -100,7 +100,7 @@ void baphy::Painter::polyline(
 void baphy::Painter::fill_tri(const glm::vec2 p0, const glm::vec2 p1, const glm::vec2 p2, const Color &color) {
     const auto c = to_vertex_color(color);
     if (c.a < 255)
-        fill_poly_translucent_(std::array{p0, p1, p2}, TRI_INDICES, c);
+        fill_poly_trans_(std::array{p0, p1, p2}, TRI_INDICES, c);
     else
         fill_poly_opaque_(std::array{p0, p1, p2}, TRI_INDICES, c);
 }
@@ -114,43 +114,9 @@ void baphy::Painter::fill_square(const glm::vec2 p0, const float size, const Col
 }
 
 void baphy::Painter::fill_ellipse(glm::vec2 center, glm::vec2 size, const Color &color) {
-    constexpr auto t0 = glm::radians(0.0f);
-    const auto p0 = point_on_ellipse(center, size, t0);
-
-    constexpr auto t1 = glm::radians(120.0f);
-    const auto p1 = point_on_ellipse(center, size, t1);
-
-    constexpr auto t2 = glm::radians(240.0f);
-    const auto p2 = point_on_ellipse(center, size, t2);
-
-    fill_tri(p0, p1, p2, color);
-
-    // we need this because the midpoint calculation won't work otherwise
-    constexpr auto t3 = glm::radians(360.0f);
-    const auto p3 = point_on_ellipse(center, size, t3);
-
-    auto base_points = std::stack<std::tuple<glm::vec2, float, glm::vec2, float>>();
-    base_points.emplace(p0, t0, p1, t1);
-    base_points.emplace(p1, t1, p2, t2);
-    base_points.emplace(p2, t2, p3, t3);
-
-    while (!base_points.empty()) {
-        const auto [pa, ta, pb, tb] = base_points.top();
-        base_points.pop();
-
-        const auto tm = (ta + tb) / 2.0f;
-        const auto pm = point_on_ellipse(center, size, tm);
-
-        const auto mid = (pa + pb) / 2.0f;
-        const auto dist2 = glm::dot(pm - mid, pm - mid);
-        // skip any vectors with a length less than 0.5
-        if (dist2 >= 0.5 * 0.5) {
-            fill_tri(pa, pm, pb, color);
-
-            base_points.emplace(pa, ta, pm, tm);
-            base_points.emplace(pm, tm, pb, tb);
-        }
-    }
+    detail::triangulate_ellipse(center, size, [&](glm::vec2 p0, float, glm::vec2 p1, float, glm::vec2 p2, float) {
+        fill_tri(p0, p1, p2, color);
+    });
 }
 
 void baphy::Painter::fill_circle(glm::vec2 center, float size, const Color &color) {
@@ -218,44 +184,16 @@ void baphy::Painter::stroke_ellipse(
 
     const auto path_size = size - hw;
 
-    constexpr auto t0 = glm::radians(0.0f);
-    const auto p0 = point_on_ellipse(center, path_size, t0);
-
-    constexpr auto t1 = glm::radians(120.0f);
-    const auto p1 = point_on_ellipse(center, path_size, t1);
-
-    constexpr auto t2 = glm::radians(240.0f);
-    const auto p2 = point_on_ellipse(center, path_size, t2);
-
-    // we need this because the midpoint calculation won't work otherwise
-    constexpr auto t3 = glm::radians(360.0f);
-    const auto p3 = point_on_ellipse(center, path_size, t3);
-
-    // p3 is the same point as p0, so it isn't added
-    auto edge_points = std::vector<std::tuple<float, glm::vec2>>{{t0, p0}, {t1, p1}, {t2, p2}};
-
-    auto base_points = std::stack<std::tuple<glm::vec2, float, glm::vec2, float>>();
-    base_points.emplace(p0, t0, p1, t1);
-    base_points.emplace(p1, t1, p2, t2);
-    base_points.emplace(p2, t2, p3, t3);
-
-    while (!base_points.empty()) {
-        const auto [pa, ta, pb, tb] = base_points.top();
-        base_points.pop();
-
-        const auto tm = (ta + tb) / 2.0f;
-        const auto pm = point_on_ellipse(center, path_size, tm);
-
-        const auto mid = (pa + pb) / 2.0f;
-        const auto dist2 = glm::dot(pm - mid, pm - mid);
-        // skip any vectors with a length less than 0.5
-        if (dist2 >= 0.5 * 0.5) {
-            edge_points.emplace_back(tm, pm);
-
-            base_points.emplace(pa, ta, pm, tm);
-            base_points.emplace(pm, tm, pb, tb);
-        }
-    }
+    auto edge_points = std::vector<std::tuple<float, glm::vec2>>();
+    detail::triangulate_ellipse(
+            center, path_size, [&](glm::vec2 p0, float t0, glm::vec2 p1, float t1, glm::vec2 p2, float t2) {
+                // the middle triangle contributes all of its vertices, the rest only contribute the new vertex
+                if (edge_points.empty()) {
+                    edge_points.emplace_back(t0, p0);
+                    edge_points.emplace_back(t2, p2);
+                }
+                edge_points.emplace_back(t1, p1);
+            });
 
     std::ranges::sort(edge_points, {}, [](const auto &e) {
         return std::get<0>(e);
@@ -274,17 +212,17 @@ void baphy::Painter::stroke_circle(
     stroke_ellipse(center, {size, size}, line_width, color);
 }
 
-void baphy::Painter::tex(
+void baphy::Painter::draw_tex(
         const Texture &t, const glm::vec2 p0, const std::optional<glm::vec2> size, const Color &color) {
-    tex_sub(t, p0, size.value_or(t.size_f()), {0.0f, 0.0f}, t.size_f(), color);
+    draw_tex_region(t, p0, size.value_or(t.size_f()), {0.0f, 0.0f}, t.size_f(), color);
 }
 
-void baphy::Painter::tex_sub(const Texture &t,
-                             glm::vec2 p0,
-                             std::optional<glm::vec2> size,
-                             glm::vec2 sub_p0,
-                             glm::vec2 sub_size,
-                             const Color &color) {
+void baphy::Painter::draw_tex_region(const Texture &t,
+                                     glm::vec2 p0,
+                                     std::optional<glm::vec2> size,
+                                     glm::vec2 sub_p0,
+                                     glm::vec2 sub_size,
+                                     const Color &color) {
     if (!tex_vbos_->can_fit(4, QUAD_INDICES.size())) {
         save_draw_call_();
         tex_vbos_->advance();
@@ -292,7 +230,7 @@ void baphy::Painter::tex_sub(const Texture &t,
 
     start_draw_call_(t.id());
 
-    const auto z = next_z_(GeometryType::translucent);
+    const auto z = next_z_(GeometryType_::trans);
     const auto c = to_vertex_color(color);
     const auto s = size.value_or(sub_size);
 
@@ -316,7 +254,7 @@ void baphy::Painter::tex_sub(const Texture &t,
 }
 
 void baphy::Painter::draw(const glm::mat4 &projection) {
-    opaq_primitive_vbos_->sync();
+    opaque_primitive_vbos_->sync();
     trans_primitive_vbos_->sync();
     tex_vbos_->sync();
 
@@ -327,7 +265,7 @@ void baphy::Painter::draw(const glm::mat4 &projection) {
     glDepthFunc(GL_GREATER);
 
     draw_opaque_(projection, z_max);
-    draw_translucent_(projection, z_max);
+    draw_trans_(projection, z_max);
 
     glDepthFunc(GL_LESS);
     glDisable(GL_DEPTH_TEST);
@@ -342,7 +280,7 @@ void baphy::Painter::draw_opaque_(const glm::mat4 &projection, float z_max) {
 
     glUseProgram(primitive_shader_->id);
     glBindVertexArray(primitive_vao_->id);
-    for (const auto &batch: *opaq_primitive_vbos_ | std::views::reverse) {
+    for (const auto &batch: *opaque_primitive_vbos_ | std::views::reverse) {
         glVertexArrayVertexBuffer(primitive_vao_->id, 0, batch->vertices.id, 0, sizeof(PrimitiveVertex));
         glVertexArrayElementBuffer(primitive_vao_->id, batch->indices.id);
         glDrawElements(GL_TRIANGLES,
@@ -352,7 +290,7 @@ void baphy::Painter::draw_opaque_(const glm::mat4 &projection, float z_max) {
     }
 }
 
-void baphy::Painter::draw_translucent_(const glm::mat4 &projection, float z_max) {
+void baphy::Painter::draw_trans_(const glm::mat4 &projection, float z_max) {
     save_draw_call_();
 
     glEnable(GL_BLEND);
@@ -361,6 +299,9 @@ void baphy::Painter::draw_translucent_(const glm::mat4 &projection, float z_max)
 
     primitive_shader_->uniform_mat4f("projection", false, projection);
     primitive_shader_->uniform_1f("z_max", z_max);
+
+    tex_shader_->uniform_mat4f("projection", false, projection);
+    tex_shader_->uniform_1f("z_max", z_max);
 
     std::optional<bool> bound_tex{std::nullopt};
     std::optional<GLuint> bound_vbo_id{std::nullopt};
@@ -395,7 +336,7 @@ void baphy::Painter::draw_translucent_(const glm::mat4 &projection, float z_max)
     glDisable(GL_BLEND);
 }
 
-float baphy::Painter::next_z_(const GeometryType type) {
+float baphy::Painter::next_z_(const GeometryType_ type) {
     if (last_geometry_type_ && *last_geometry_type_ != type)
         z_ += 1.0f;
     last_geometry_type_ = type;
@@ -405,7 +346,7 @@ float baphy::Painter::next_z_(const GeometryType type) {
 void baphy::Painter::fill_quad_(
         const glm::vec2 p0, const glm::vec2 p1, const glm::vec2 p2, const glm::vec2 p3, const Color &color) {
     if (const auto c = to_vertex_color(color); c.a < 255)
-        fill_poly_translucent_(std::array{p0, p1, p2, p3}, QUAD_INDICES, c);
+        fill_poly_trans_(std::array{p0, p1, p2, p3}, QUAD_INDICES, c);
     else
         fill_poly_opaque_(std::array{p0, p1, p2, p3}, QUAD_INDICES, c);
 }
@@ -413,19 +354,19 @@ void baphy::Painter::fill_quad_(
 template<std::size_t N, std::size_t M>
 void baphy::Painter::fill_poly_opaque_(
         const std::array<glm::vec2, N> &points, const std::array<Index, M> &indices, const glm::u8vec4 color) {
-    if (!opaq_primitive_vbos_->can_fit(N, M))
-        opaq_primitive_vbos_->advance();
+    if (!opaque_primitive_vbos_->can_fit(N, M))
+        opaque_primitive_vbos_->advance();
 
-    const auto z = next_z_(GeometryType::opaque);
+    const auto z = next_z_(GeometryType_::opaque);
     std::array<PrimitiveVertex, N> vertices;
     for (std::size_t i = 0; i < N; ++i)
         vertices[i] = {{points[i].x, points[i].y, z}, color};
 
-    opaq_primitive_vbos_->extend(vertices, indices);
+    opaque_primitive_vbos_->extend(vertices, indices);
 }
 
 template<std::size_t N, std::size_t M>
-void baphy::Painter::fill_poly_translucent_(
+void baphy::Painter::fill_poly_trans_(
         const std::array<glm::vec2, N> &points, const std::array<Index, M> &indices, const glm::u8vec4 color) {
     if (!trans_primitive_vbos_->can_fit(N, M)) {
         save_draw_call_();
@@ -434,7 +375,7 @@ void baphy::Painter::fill_poly_translucent_(
 
     start_draw_call_(std::nullopt);
 
-    const auto z = next_z_(GeometryType::translucent);
+    const auto z = next_z_(GeometryType_::trans);
     std::array<PrimitiveVertex, N> vertices;
     for (std::size_t i = 0; i < N; ++i)
         vertices[i] = {{points[i].x, points[i].y, z}, color};
@@ -442,7 +383,7 @@ void baphy::Painter::fill_poly_translucent_(
     trans_primitive_vbos_->extend(vertices, indices);
 }
 
-baphy::Painter::CurrentBatch baphy::Painter::curr_translucent_batch_(const bool tex) const {
+baphy::Painter::CurrentBatch_ baphy::Painter::curr_trans_batch_(const bool tex) const {
     if (tex)
         return {tex_vbos_->vbo_id(), tex_vbos_->ebo_id(), tex_vbos_->index_back()};
     return {trans_primitive_vbos_->vbo_id(), trans_primitive_vbos_->ebo_id(), trans_primitive_vbos_->index_back()};
@@ -453,7 +394,7 @@ void baphy::Painter::start_draw_call_(const std::optional<GLuint> tex_id) {
         save_draw_call_();
 
     if (!pending_trans_draw_call_)
-        pending_trans_draw_call_ = PendingDrawCall{tex_id, curr_translucent_batch_(tex_id.has_value()).index_back};
+        pending_trans_draw_call_ = PendingDrawCall_{tex_id, curr_trans_batch_(tex_id.has_value()).idx_back};
 }
 
 void baphy::Painter::save_draw_call_() {
@@ -463,7 +404,7 @@ void baphy::Painter::save_draw_call_() {
     const auto [tex_id, first] = *pending_trans_draw_call_;
     pending_trans_draw_call_.reset();
 
-    const auto [vbo_id, ebo_id, back] = curr_translucent_batch_(tex_id.has_value());
+    const auto [vbo_id, ebo_id, back] = curr_trans_batch_(tex_id.has_value());
     if (back > first)
         trans_draw_calls_.emplace_back(tex_id, vbo_id, ebo_id, first, static_cast<GLsizei>(back - first));
 }

@@ -17,8 +17,9 @@ for item in sorted(Path("include").rglob("*"), key=lambda e: e.as_posix()):
 ]]] */
 #include "baphy/application.hpp"
 #include "baphy/color.hpp"
+#include "baphy/detail/ellipse.hpp"
 #include "baphy/detail/polyline.hpp"
-#include "baphy/detail/shaders.hpp"
+#include "baphy/detail/shaders_src.hpp"
 #include "baphy/detail/vbo_list.hpp"
 #include "baphy/event/all.hpp"
 #include "baphy/event/common.hpp"
@@ -46,7 +47,7 @@ for item in sorted(Path("include").rglob("*"), key=lambda e: e.as_posix()):
 #include "baphy/util/platform.hpp"
 #include "baphy/util/time.hpp"
 #include "baphy/window.hpp"
-/* [[[end]]] (sum: pwWNRewtVW) */
+/* [[[end]]] (sum: HxVC7DevPL)  */
 
 namespace baphy {
 const char *version();

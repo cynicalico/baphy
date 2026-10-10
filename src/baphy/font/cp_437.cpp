@@ -37,7 +37,7 @@ void baphy::CP437_Font::draw(std::string_view str, const glm::vec2 pos, float sc
         } else {
             const auto glyph_tex_pos = glm::vec2(
                     glyph_size_.x * static_cast<float>(c % 16), glyph_size_.y * static_cast<float>(c / 16 - 2));
-            painter_.tex_sub(
+            painter_.draw_tex_region(
                     *texture_, curr_pos, glm::vec2(glyph_size_) * scale, glyph_tex_pos, glm::vec2(glyph_size_), color);
             curr_pos.x += glyph_size_.x * scale;
         }

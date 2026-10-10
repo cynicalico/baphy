@@ -1,8 +1,8 @@
 #include "baphy/detail/polyline.hpp"
 
 #include <algorithm>
-#include <stack>
-#include <tuple>
+#include <cmath>
+#include "baphy/detail/ellipse.hpp"
 #include "baphy/util/math.hpp"
 
 constexpr auto EPSILON = 1e-6;
@@ -64,30 +64,16 @@ void baphy::detail::triangulate_polyline(std::span<const glm::vec2> points,
     // fills between the chord a-b and the arc of radius half_w around p that
     // passes through both, subdivided the same way as ellipse
     const auto round_join = [&](const glm::vec2 p, const glm::vec2 a, const glm::vec2 b, const float sweep) {
-        const auto radius = glm::vec2(half_w, half_w);
         const auto ta = std::atan2(a.y - p.y, a.x - p.x);
-        const auto tb = ta + sweep;
-
-        auto arcs = std::stack<std::tuple<glm::vec2, float, glm::vec2, float>>();
-        arcs.emplace(a, ta, b, tb);
-
-        while (!arcs.empty()) {
-            const auto [pa, ta, pb, tb] = arcs.top();
-            arcs.pop();
-
-            const auto tm = (ta + tb) / 2.0f;
-            const auto pm = point_on_ellipse(p, radius, tm);
-
-            const auto mid = (pa + pb) / 2.0f;
-            const auto dist2 = glm::dot(pm - mid, pm - mid);
-            // skip any vectors with a length less than 0.5
-            if (dist2 >= 0.5 * 0.5) {
-                out.emplace_back(std::array{pa, pm, pb});
-
-                arcs.emplace(pa, ta, pm, tm);
-                arcs.emplace(pm, tm, pb, tb);
-            }
-        }
+        triangulate_arc(p,
+                        {half_w, half_w},
+                        a,
+                        ta,
+                        b,
+                        ta + sweep,
+                        [&](glm::vec2 p0, float, glm::vec2 p1, float, glm::vec2 p2, float) {
+                            out.emplace_back(std::array{p0, p1, p2});
+                        });
     };
 
     if (!closed) {

@@ -35,7 +35,7 @@ baphy::Color Example::clear_color() {
 }
 
 void Example::draw() {
-    font->draw(fmt::format("{} {}", input.mouse_pos().x, input.mouse_pos().y), {100, 200});
+    font->draw(fmt::format("mouse_pos: {:.2f} {:.2f}", input.mouse_pos().x, input.mouse_pos().y), {100, 200});
 
     painter.stroke_rect({0, 100}, {7, 7}, 3.0f, baphy::rgb(255, 255, 255));
 

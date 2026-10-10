@@ -61,19 +61,20 @@ public:
     void stroke_ellipse(glm::vec2 center, glm::vec2 size, float line_width, const Color &color);
     void stroke_circle(glm::vec2 center, float size, float line_width, const Color &color);
 
-    void tex(const Texture &t, glm::vec2 p0, std::optional<glm::vec2> size, const Color &color = rgb(255, 255, 255));
-    void tex_sub(const Texture &t,
-                 glm::vec2 p0,
-                 std::optional<glm::vec2> size,
-                 glm::vec2 sub_p0,
-                 glm::vec2 sub_size,
-                 const Color &color = rgb(255, 255, 255));
+    void
+    draw_tex(const Texture &t, glm::vec2 p0, std::optional<glm::vec2> size, const Color &color = rgb(255, 255, 255));
+    void draw_tex_region(const Texture &t,
+                         glm::vec2 p0,
+                         std::optional<glm::vec2> size,
+                         glm::vec2 sub_p0,
+                         glm::vec2 sub_size,
+                         const Color &color = rgb(255, 255, 255));
 
     void draw(const glm::mat4 &projection);
 
 private:
     void draw_opaque_(const glm::mat4 &projection, float z_max);
-    void draw_translucent_(const glm::mat4 &projection, float z_max);
+    void draw_trans_(const glm::mat4 &projection, float z_max);
 
     void fill_quad_(glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, const Color &color);
 
@@ -83,18 +84,18 @@ private:
                            glm::u8vec4 color);
 
     template<std::size_t N, std::size_t M>
-    void fill_poly_translucent_(const std::array<glm::vec2, N> &points,
-                                const std::array<detail::VBOList<PrimitiveVertex>::index_t, M> &indices,
-                                glm::u8vec4 color);
+    void fill_poly_trans_(const std::array<glm::vec2, N> &points,
+                          const std::array<detail::VBOList<PrimitiveVertex>::index_t, M> &indices,
+                          glm::u8vec4 color);
 
-    enum class GeometryType {
+    enum class GeometryType_ {
         opaque,
-        translucent,
+        trans,
     };
 
     float z_{1.0f};
-    std::optional<GeometryType> last_geometry_type_{std::nullopt};
-    float next_z_(GeometryType type);
+    std::optional<GeometryType_> last_geometry_type_{std::nullopt};
+    float next_z_(GeometryType_ type);
 
     std::unique_ptr<glh::Shader> primitive_shader_{nullptr};
     std::unique_ptr<glh::Shader> tex_shader_{nullptr};
@@ -102,16 +103,16 @@ private:
     std::unique_ptr<glh::VertexArray> primitive_vao_{nullptr};
     std::unique_ptr<glh::VertexArray> tex_vao_{nullptr};
 
-    std::unique_ptr<detail::VBOList<PrimitiveVertex>> opaq_primitive_vbos_{nullptr};
+    std::unique_ptr<detail::VBOList<PrimitiveVertex>> opaque_primitive_vbos_{nullptr};
     std::unique_ptr<detail::VBOList<PrimitiveVertex>> trans_primitive_vbos_{nullptr};
     std::unique_ptr<detail::VBOList<TextureVertex>> tex_vbos_{nullptr};
 
-    struct PendingDrawCall {
+    struct PendingDrawCall_ {
         std::optional<GLuint> tex_id{std::nullopt};
         std::size_t first{0};
     };
 
-    struct DrawCall {
+    struct DrawCall_ {
         std::optional<GLuint> tex_id{std::nullopt};
         GLuint vbo_id{0};
         GLuint ebo_id{0};
@@ -119,16 +120,16 @@ private:
         GLsizei count{0};
     };
 
-    struct CurrentBatch {
+    struct CurrentBatch_ {
         GLuint vbo_id{0};
         GLuint ebo_id{0};
-        std::size_t index_back{0};
+        std::size_t idx_back{0};
     };
 
-    std::optional<PendingDrawCall> pending_trans_draw_call_{std::nullopt};
-    std::vector<DrawCall> trans_draw_calls_{};
+    std::optional<PendingDrawCall_> pending_trans_draw_call_{std::nullopt};
+    std::vector<DrawCall_> trans_draw_calls_{};
 
-    [[nodiscard]] CurrentBatch curr_translucent_batch_(bool tex) const;
+    [[nodiscard]] CurrentBatch_ curr_trans_batch_(bool tex) const;
     void start_draw_call_(std::optional<GLuint> tex_id);
     void save_draw_call_();
 };
