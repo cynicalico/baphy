@@ -62,6 +62,14 @@ public:
                  glm::vec2 sub_size,
                  const Color &color = rgb(255, 255, 255));
 
+    void stroke_tri(glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, float line_width, const Color &color);
+
+    void stroke_rect(glm::vec2 p0, glm::vec2 size, float line_width, const Color &color);
+    void stroke_square(glm::vec2 p0, float size, float line_width, const Color &color);
+
+    void stroke_ellipse(glm::vec2 center, glm::vec2 size, float line_width, const Color &color);
+    void stroke_circle(glm::vec2 center, float size, float line_width, const Color &color);
+
     void draw(const glm::mat4 &projection);
 
 private:

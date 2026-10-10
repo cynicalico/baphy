@@ -207,6 +207,123 @@ void baphy::Painter::tex_sub(const Texture &t,
             QUAD_INDICES);
 }
 
+void baphy::Painter::stroke_rect(glm::vec2 p0, glm::vec2 size, float line_width, const Color &color) {
+    // stroke would cover the whole rect
+    if (size.x <= line_width || size.y <= line_width) {
+        fill_rect(p0, size, color);
+        return;
+    }
+
+    const auto hw = line_width / 2.0f;
+    const auto tl = p0 + hw;
+    const auto br = p0 + size - hw;
+    polyline(
+            std::array{tl, glm::vec2{br.x, tl.y}, br, glm::vec2{tl.x, br.y}}, line_width, true, LineJoin::miter, color);
+}
+
+void baphy::Painter::stroke_square(const glm::vec2 p0, const float size, const float line_width, const Color &color) {
+    stroke_rect(p0, {size, size}, line_width, color);
+}
+
+void baphy::Painter::stroke_ellipse(
+        const glm::vec2 center, const glm::vec2 size, const float line_width, const Color &color) {
+    const auto hw = line_width / 2.0f;
+
+    // stroke would cover the whole ellipse
+    if (size.x <= hw || size.y <= hw) {
+        fill_ellipse(center, size, color);
+        return;
+    }
+
+    const auto path_size = size - hw;
+
+    constexpr auto t0 = glm::radians(0.0f);
+    const auto p0 = point_on_ellipse(center, path_size, t0);
+
+    constexpr auto t1 = glm::radians(120.0f);
+    const auto p1 = point_on_ellipse(center, path_size, t1);
+
+    constexpr auto t2 = glm::radians(240.0f);
+    const auto p2 = point_on_ellipse(center, path_size, t2);
+
+    // we need this because the midpoint calculation won't work otherwise
+    constexpr auto t3 = glm::radians(360.0f);
+    const auto p3 = point_on_ellipse(center, path_size, t3);
+
+    // p3 is the same point as p0, so it isn't added
+    auto edge_points = std::vector<std::tuple<float, glm::vec2>>{{t0, p0}, {t1, p1}, {t2, p2}};
+
+    auto base_points = std::stack<std::tuple<glm::vec2, float, glm::vec2, float>>();
+    base_points.emplace(p0, t0, p1, t1);
+    base_points.emplace(p1, t1, p2, t2);
+    base_points.emplace(p2, t2, p3, t3);
+
+    while (!base_points.empty()) {
+        const auto [pa, ta, pb, tb] = base_points.top();
+        base_points.pop();
+
+        const auto tm = (ta + tb) / 2.0f;
+        const auto pm = point_on_ellipse(center, path_size, tm);
+
+        const auto mid = (pa + pb) / 2.0f;
+        const auto dist2 = glm::dot(pm - mid, pm - mid);
+        // skip any vectors with a length less than 0.5
+        if (dist2 >= 0.5 * 0.5) {
+            edge_points.emplace_back(tm, pm);
+
+            base_points.emplace(pa, ta, pm, tm);
+            base_points.emplace(pm, tm, pb, tb);
+        }
+    }
+
+    std::ranges::sort(edge_points, {}, [](const auto &e) {
+        return std::get<0>(e);
+    });
+
+    auto points = std::vector<glm::vec2>();
+    points.reserve(edge_points.size());
+    for (const auto &[t, p]: edge_points)
+        points.push_back(p);
+
+    polyline(points, line_width, true, LineJoin::miter, color);
+}
+
+void baphy::Painter::stroke_circle(
+        const glm::vec2 center, const float size, const float line_width, const Color &color) {
+    stroke_ellipse(center, {size, size}, line_width, color);
+}
+
+void baphy::Painter::stroke_tri(
+        const glm::vec2 p0, const glm::vec2 p1, const glm::vec2 p2, const float line_width, const Color &color) {
+    const auto hw = line_width / 2.0f;
+
+    const auto a = glm::length(p1 - p2);
+    const auto b = glm::length(p0 - p2);
+    const auto c = glm::length(p0 - p1);
+    const auto perimeter = a + b + c;
+
+    const auto e0 = p1 - p0;
+    const auto e1 = p2 - p0;
+    const auto area = std::abs(e0.x * e1.y - e0.y * e1.x) / 2.0f;
+    const auto inradius = perimeter > 0.0f ? 2.0f * area / perimeter : 0.0f;
+
+    // stroke would cover the whole triangle
+    if (inradius <= hw) {
+        fill_tri(p0, p1, p2, color);
+        return;
+    }
+
+    const auto incenter = (a * p0 + b * p1 + c * p2) / perimeter;
+    const auto scale = (inradius - hw) / inradius;
+    polyline(std::array{incenter + (p0 - incenter) * scale,
+                        incenter + (p1 - incenter) * scale,
+                        incenter + (p2 - incenter) * scale},
+             line_width,
+             true,
+             LineJoin::miter,
+             color);
+}
+
 void baphy::Painter::draw(const glm::mat4 &projection) {
     opaq_primitive_vbos_->sync();
     trans_primitive_vbos_->sync();
