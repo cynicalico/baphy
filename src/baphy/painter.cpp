@@ -153,7 +153,17 @@ void baphy::Painter::fill_circle(glm::vec2 center, float size, const Color &colo
     fill_ellipse(center, {size, size}, color);
 }
 
-void baphy::Painter::tex(const Texture &t, const glm::vec2 p0, const glm::vec2 size, const Color &color) {
+void baphy::Painter::tex(
+        const Texture &t, const glm::vec2 p0, const std::optional<glm::vec2> size, const Color &color) {
+    tex_sub(t, p0, size.value_or(t.size_f()), {0.0f, 0.0f}, t.size_f(), color);
+}
+
+void baphy::Painter::tex_sub(const Texture &t,
+                             glm::vec2 p0,
+                             std::optional<glm::vec2> size,
+                             glm::vec2 sub_p0,
+                             glm::vec2 sub_size,
+                             const Color &color) {
     if (!tex_vbos_->can_fit(6)) {
         save_draw_call_();
         tex_vbos_->advance();
@@ -163,17 +173,22 @@ void baphy::Painter::tex(const Texture &t, const glm::vec2 p0, const glm::vec2 s
 
     const auto z = next_z_(GeometryType::translucent);
     const auto c = to_vertex_color(color);
-    const auto p1 = p0 + glm::vec2{size.x, 0.0f};
-    const auto p2 = p0 + size;
-    const auto p3 = p0 + glm::vec2{0.0f, size.y};
+    const auto s = size.value_or(sub_size);
+    const auto p1 = p0 + glm::vec2{s.x, 0.0f};
+    const auto p2 = p0 + s;
+    const auto p3 = p0 + glm::vec2{0.0f, s.y};
+    const auto t0 = t.to_tex_coords(sub_p0);
+    const auto t1 = t.to_tex_coords(sub_p0 + glm::vec2(sub_size.x, 0.0f));
+    const auto t2 = t.to_tex_coords(sub_p0 + sub_size);
+    const auto t3 = t.to_tex_coords(sub_p0 + glm::vec2(0.0f, sub_size.y));
 
     tex_vbos_->extend(std::array{
-            TextureVertex{{p0.x, p0.y, z}, c, {0.0f, 0.0f}},
-            TextureVertex{{p1.x, p1.y, z}, c, {1.0f, 0.0f}},
-            TextureVertex{{p2.x, p2.y, z}, c, {1.0f, 1.0f}},
-            TextureVertex{{p0.x, p0.y, z}, c, {0.0f, 0.0f}},
-            TextureVertex{{p2.x, p2.y, z}, c, {1.0f, 1.0f}},
-            TextureVertex{{p3.x, p3.y, z}, c, {0.0f, 1.0f}},
+            TextureVertex{{p0.x, p0.y, z}, c, t0},
+            TextureVertex{{p1.x, p1.y, z}, c, t1},
+            TextureVertex{{p2.x, p2.y, z}, c, t2},
+            TextureVertex{{p0.x, p0.y, z}, c, t0},
+            TextureVertex{{p2.x, p2.y, z}, c, t2},
+            TextureVertex{{p3.x, p3.y, z}, c, t3},
     });
 }
 

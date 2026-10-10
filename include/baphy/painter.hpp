@@ -53,7 +53,13 @@ public:
     void fill_ellipse(glm::vec2 center, glm::vec2 size, const Color &color);
     void fill_circle(glm::vec2 center, float size, const Color &color);
 
-    void tex(const Texture &t, glm::vec2 p0, glm::vec2 size, const Color &color = rgb(255, 255, 255));
+    void tex(const Texture &t, glm::vec2 p0, std::optional<glm::vec2> size, const Color &color = rgb(255, 255, 255));
+    void tex_sub(const Texture &t,
+                 glm::vec2 p0,
+                 std::optional<glm::vec2> size,
+                 glm::vec2 sub_p0,
+                 glm::vec2 sub_size,
+                 const Color &color = rgb(255, 255, 255));
 
     void draw(const glm::mat4 &projection);
 

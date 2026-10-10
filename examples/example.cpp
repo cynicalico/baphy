@@ -33,7 +33,8 @@ baphy::Color Example::clear_color() {
 }
 
 void Example::draw() {
-    painter.tex(*texture, window.center() - 5.0f * texture->size_f() / 2.0f, 5.0f * texture->size_f());
+    painter.tex_sub(
+            *texture, window.center() - texture->size_f() / 4.0f, std::nullopt, {0.0f, 0.0f}, texture->size_f() / 2.0f);
 }
 
 void Example::keyboard_callback(const baphy::KeyboardEvent &e) {
