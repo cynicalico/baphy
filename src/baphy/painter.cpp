@@ -37,20 +37,19 @@ static glm::u8vec4 to_vertex_color(const baphy::Color &color) {
 }
 
 baphy::Painter::Painter() {
-    primitive_shader_ = glh::create_shader_from_src(detail::PRIMITIVE_VERT_SRC, detail::PRIMITIVE_FRAG_SRC).value();
-    tex_shader_ = glh::create_shader_from_src(detail::TEXTURE_VERT_SRC, detail::TEXTURE_FRAG_SRC).value();
-    uniform_loc_cache_ = std::make_unique<detail::ShaderUniformLocCache>();
+    primitive_shader_ = glh::Shader::from_src(detail::PRIMITIVE_VERT_SRC, detail::PRIMITIVE_FRAG_SRC);
+    tex_shader_ = glh::Shader::from_src(detail::TEXTURE_VERT_SRC, detail::TEXTURE_FRAG_SRC);
 
-    primitive_vao_ = glh::create_vertex_array_from_bindings(
-            primitive_shader_,
-            {{"aPos", 3, GL_FLOAT, false, offsetof(PrimitiveVertex, pos)},
-             {"aColor", 4, GL_UNSIGNED_BYTE, true, offsetof(PrimitiveVertex, color)}});
+    primitive_vao_ = std::make_unique<glh::VertexArray>(
+            primitive_shader_->id,
+            std::array{glh::AttribBinding{"aPos", 3, GL_FLOAT, false, offsetof(PrimitiveVertex, pos)},
+                       glh::AttribBinding{"aColor", 4, GL_UNSIGNED_BYTE, true, offsetof(PrimitiveVertex, color)}});
 
-    tex_vao_ = glh::create_vertex_array_from_bindings(
-            tex_shader_,
-            {{"aPos", 3, GL_FLOAT, false, offsetof(TextureVertex, pos)},
-             {"aColor", 4, GL_UNSIGNED_BYTE, true, offsetof(TextureVertex, color)},
-             {"aTexCoord", 2, GL_FLOAT, false, offsetof(TextureVertex, tex_coord)}});
+    tex_vao_ = std::make_unique<glh::VertexArray>(
+            tex_shader_->id,
+            std::array{glh::AttribBinding{"aPos", 3, GL_FLOAT, false, offsetof(TextureVertex, pos)},
+                       glh::AttribBinding{"aColor", 4, GL_UNSIGNED_BYTE, true, offsetof(TextureVertex, color)},
+                       glh::AttribBinding{"aTexCoord", 2, GL_FLOAT, false, offsetof(TextureVertex, tex_coord)}});
 
     opaq_primitive_vbos_ = std::make_unique<detail::VBOList<PrimitiveVertex>>(
             PRIMITIVE_BATCH_SIZE, index_batch_size(PRIMITIVE_BATCH_SIZE), glh::FillDirection::Reverse);
@@ -60,14 +59,6 @@ baphy::Painter::Painter() {
 
     tex_vbos_ = std::make_unique<detail::VBOList<TextureVertex>>(
             TEXTURE_BATCH_SIZE, index_batch_size(TEXTURE_BATCH_SIZE), glh::FillDirection::Forward);
-}
-
-baphy::Painter::~Painter() {
-    glDeleteVertexArrays(1, &tex_vao_);
-    glDeleteProgram(tex_shader_);
-
-    glDeleteVertexArrays(1, &primitive_vao_);
-    glDeleteProgram(primitive_shader_);
 }
 
 void baphy::Painter::reset() {
@@ -346,18 +337,14 @@ void baphy::Painter::draw(const glm::mat4 &projection) {
 }
 
 void baphy::Painter::draw_opaque_(const glm::mat4 &projection, float z_max) {
-    glProgramUniformMatrix4fv(primitive_shader_,
-                              uniform_loc_cache_->find(primitive_shader_, "projection"),
-                              1,
-                              GL_FALSE,
-                              glm::value_ptr(projection));
-    glProgramUniform1f(primitive_shader_, uniform_loc_cache_->find(primitive_shader_, "z_max"), z_max);
+    primitive_shader_->uniform_mat4f("projection", false, projection);
+    primitive_shader_->uniform_1f("z_max", z_max);
 
-    glUseProgram(primitive_shader_);
-    glBindVertexArray(primitive_vao_);
+    glUseProgram(primitive_shader_->id);
+    glBindVertexArray(primitive_vao_->id);
     for (const auto &batch: *opaq_primitive_vbos_ | std::views::reverse) {
-        glVertexArrayVertexBuffer(primitive_vao_, 0, batch->vertices.id, 0, sizeof(PrimitiveVertex));
-        glVertexArrayElementBuffer(primitive_vao_, batch->indices.id);
+        glVertexArrayVertexBuffer(primitive_vao_->id, 0, batch->vertices.id, 0, sizeof(PrimitiveVertex));
+        glVertexArrayElementBuffer(primitive_vao_->id, batch->indices.id);
         glDrawElements(GL_TRIANGLES,
                        static_cast<GLsizei>(batch->indices.size()),
                        INDEX_GL_TYPE,
@@ -372,10 +359,8 @@ void baphy::Painter::draw_translucent_(const glm::mat4 &projection, float z_max)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthMask(GL_FALSE);
 
-    glProgramUniformMatrix4fv(
-            tex_shader_, uniform_loc_cache_->find(tex_shader_, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
-    glProgramUniform1f(tex_shader_, uniform_loc_cache_->find(tex_shader_, "z_max"), z_max);
-    glProgramUniform1i(tex_shader_, uniform_loc_cache_->find(tex_shader_, "tex"), 0);
+    primitive_shader_->uniform_mat4f("projection", false, projection);
+    primitive_shader_->uniform_1f("z_max", z_max);
 
     std::optional<bool> bound_tex{std::nullopt};
     std::optional<GLuint> bound_vbo_id{std::nullopt};
@@ -383,18 +368,18 @@ void baphy::Painter::draw_translucent_(const glm::mat4 &projection, float z_max)
 
     for (const auto &[tex_id, vbo_id, ebo_id, first, count]: trans_draw_calls_) {
         const auto is_tex = tex_id.has_value();
-        const auto vao = is_tex ? tex_vao_ : primitive_vao_;
+        const auto &vao = is_tex ? *tex_vao_ : *primitive_vao_;
 
         if (bound_tex != is_tex) {
-            glUseProgram(is_tex ? tex_shader_ : primitive_shader_);
-            glBindVertexArray(vao);
+            glUseProgram(is_tex ? tex_shader_->id : primitive_shader_->id);
+            glBindVertexArray(vao.id);
             bound_tex = is_tex;
             bound_vbo_id = std::nullopt;
         }
 
         if (bound_vbo_id != vbo_id) {
-            glVertexArrayVertexBuffer(vao, 0, vbo_id, 0, is_tex ? sizeof(TextureVertex) : sizeof(PrimitiveVertex));
-            glVertexArrayElementBuffer(vao, ebo_id);
+            glVertexArrayVertexBuffer(vao.id, 0, vbo_id, 0, is_tex ? sizeof(TextureVertex) : sizeof(PrimitiveVertex));
+            glVertexArrayElementBuffer(vao.id, ebo_id);
             bound_vbo_id = vbo_id;
         }
 

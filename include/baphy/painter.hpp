@@ -11,7 +11,6 @@
 #include <vector>
 #include "baphy/color.hpp"
 #include "baphy/detail/polyline.hpp"
-#include "baphy/detail/shader_uniform_loc_cache.hpp"
 #include "baphy/detail/vbo_list.hpp"
 #include "baphy/glh/glh.hpp"
 #include "baphy/texture.hpp"
@@ -31,7 +30,7 @@ struct TextureVertex {
 class Painter {
 public:
     Painter();
-    ~Painter();
+    ~Painter() = default;
 
     Painter(const Painter &other) = delete;
     Painter(Painter &&other) noexcept = delete;
@@ -95,15 +94,13 @@ private:
 
     float z_{1.0f};
     std::optional<GeometryType> last_geometry_type_{std::nullopt};
-
     float next_z_(GeometryType type);
 
-    GLuint primitive_shader_{0};
-    GLuint tex_shader_{0};
-    std::unique_ptr<detail::ShaderUniformLocCache> uniform_loc_cache_{nullptr};
+    std::unique_ptr<glh::Shader> primitive_shader_{nullptr};
+    std::unique_ptr<glh::Shader> tex_shader_{nullptr};
 
-    GLuint primitive_vao_{0};
-    GLuint tex_vao_{0};
+    std::unique_ptr<glh::VertexArray> primitive_vao_{nullptr};
+    std::unique_ptr<glh::VertexArray> tex_vao_{nullptr};
 
     std::unique_ptr<detail::VBOList<PrimitiveVertex>> opaq_primitive_vbos_{nullptr};
     std::unique_ptr<detail::VBOList<PrimitiveVertex>> trans_primitive_vbos_{nullptr};
@@ -113,6 +110,7 @@ private:
         std::optional<GLuint> tex_id{std::nullopt};
         std::size_t first{0};
     };
+
     struct DrawCall {
         std::optional<GLuint> tex_id{std::nullopt};
         GLuint vbo_id{0};
@@ -120,14 +118,16 @@ private:
         std::size_t first{0};
         GLsizei count{0};
     };
-    std::optional<PendingDrawCall> pending_trans_draw_call_{std::nullopt};
-    std::vector<DrawCall> trans_draw_calls_{};
 
     struct CurrentBatch {
         GLuint vbo_id{0};
         GLuint ebo_id{0};
         std::size_t index_back{0};
     };
+
+    std::optional<PendingDrawCall> pending_trans_draw_call_{std::nullopt};
+    std::vector<DrawCall> trans_draw_calls_{};
+
     [[nodiscard]] CurrentBatch curr_translucent_batch_(bool tex) const;
     void start_draw_call_(std::optional<GLuint> tex_id);
     void save_draw_call_();
