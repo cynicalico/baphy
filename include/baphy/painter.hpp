@@ -1,6 +1,7 @@
 #ifndef BAPHY_PAINTER_HPP
 #define BAPHY_PAINTER_HPP
 
+#include <array>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_precision.hpp>
 #include <memory>
@@ -67,8 +68,17 @@ private:
     void draw_opaque_(const glm::mat4 &projection, float z_max);
     void draw_translucent_(const glm::mat4 &projection, float z_max);
 
-    void fill_tri_opaque_(glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, glm::u8vec4 color);
-    void fill_tri_translucent_(glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, glm::u8vec4 color);
+    void fill_quad_(glm::vec2 p0, glm::vec2 p1, glm::vec2 p2, glm::vec2 p3, const Color &color);
+
+    template<std::size_t N, std::size_t M>
+    void fill_poly_opaque_(const std::array<glm::vec2, N> &points,
+                           const std::array<detail::VBOList<PrimitiveVertex>::index_t, M> &indices,
+                           glm::u8vec4 color);
+
+    template<std::size_t N, std::size_t M>
+    void fill_poly_translucent_(const std::array<glm::vec2, N> &points,
+                                const std::array<detail::VBOList<PrimitiveVertex>::index_t, M> &indices,
+                                glm::u8vec4 color);
 
     enum class GeometryType {
         opaque,
@@ -98,13 +108,19 @@ private:
     struct DrawCall {
         std::optional<GLuint> tex_id{std::nullopt};
         GLuint vbo_id{0};
-        GLint first{0};
+        GLuint ebo_id{0};
+        std::size_t first{0};
         GLsizei count{0};
     };
     std::optional<PendingDrawCall> pending_trans_draw_call_{std::nullopt};
     std::vector<DrawCall> trans_draw_calls_{};
 
-    [[nodiscard]] std::pair<GLuint, std::size_t> curr_translucent_vbo_(bool tex) const;
+    struct CurrentBatch {
+        GLuint vbo_id{0};
+        GLuint ebo_id{0};
+        std::size_t index_back{0};
+    };
+    [[nodiscard]] CurrentBatch curr_translucent_batch_(bool tex) const;
     void start_draw_call_(std::optional<GLuint> tex_id);
     void save_draw_call_();
 };
