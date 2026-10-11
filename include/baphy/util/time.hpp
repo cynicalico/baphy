@@ -21,6 +21,7 @@ public:
     explicit Ticker(duration interval = duration::zero());
 
     void reset();
+    void set_interval(duration interval);
 
     std::uint64_t tick();
 
@@ -50,6 +51,11 @@ void Ticker<Clock>::reset() {
     last_ = start_;
     dt_ = duration::zero();
     acc_ = duration::zero();
+}
+
+template<typename Clock>
+void Ticker<Clock>::set_interval(duration interval) {
+    interval_ = interval;
 }
 
 template<typename Clock>

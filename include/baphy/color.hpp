@@ -25,6 +25,10 @@ public:
     RGBA() = default;
     RGBA(std::uint8_t r, std::uint8_t g, std::uint8_t b, std::uint8_t a);
 
+    // amount is in [0, 1], and moves HSL lightness that fraction of the way toward white/black
+    [[nodiscard]] RGBA lighten(float amount) const;
+    [[nodiscard]] RGBA darken(float amount) const;
+
     [[nodiscard]] operator Color() const;
 };
 

@@ -4,6 +4,7 @@ CPMAddPackage("gh:cynicalico/clero#58e4c829f99974cb6397eeec335db5aa01e94da0")
 CPMAddPackage("gh:fmtlib/fmt#12.1.0")
 CPMAddPackage(URI "gh:g-truc/glm#1.0.3" OPTIONS "GLM_ENABLE_CXX_20 ON")
 CPMAddPackage(URI "gh:cynicalico/nexus#3c3515943e23d39d6a0ba9239c3e38e4724509e5" OPTIONS "NEXUS_USE_STD_TYPE_INDEX ON")
+#CPMAddPackage("gh:kcat/openal-soft#1.25.2")
 CPMAddPackage("gh:libsdl-org/SDL#release-3.4.16")
 CPMAddPackage(URI "gh:gabime/spdlog@1.17.0" OPTIONS "SPDLOG_FMT_EXTERNAL ON")
 
@@ -23,6 +24,7 @@ target_link_libraries(baphy_thirdparty INTERFACE
         imgui::imgui
         implot::implot
         nexus::nexus
+#        OpenAL::OpenAL
         SDL3::SDL3
         spdlog::spdlog
         stb::stb

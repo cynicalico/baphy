@@ -27,6 +27,7 @@ public:
     [[nodiscard]] glm::vec2 mouse_delta() const { return mouse.delta; }
     [[nodiscard]] glm::vec2 mouse_prev_pos() const { return mouse.prev_pos; }
     [[nodiscard]] glm::vec2 mouse_wheel() const { return mouse.wheel; }
+    [[nodiscard]] glm::ivec2 mouse_wheel_int() const { return mouse.wheel_int; }
 
     [[nodiscard]] bool button_pressed(Button button) const;
     [[nodiscard]] bool button_released(Button button) const;
@@ -49,6 +50,7 @@ private:
         glm::vec2 delta{0, 0};
         glm::vec2 prev_pos{0, 0};
         glm::vec2 wheel{0, 0};
+        glm::ivec2 wheel_int{0, 0};
         std::unordered_map<Button, bool> buttons_state{};
         std::unordered_map<Button, bool> buttons_prev_state{};
     } mouse{};

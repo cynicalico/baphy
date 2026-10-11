@@ -3,6 +3,7 @@
 #include <SDL3/SDL.h>
 #include <fmt/format.h>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 #include <imgui_impl_opengl3.h>
 #include <imgui_impl_sdl3.h>
 #include <stdexcept>
@@ -121,10 +122,10 @@ void baphy::Runner::run_() {
         glViewport(0, 0, window->w(), window->h());
 
         const auto clear_color = app_->clear_color().value();
-        glClearColor(clear_color.r, clear_color.g, clear_color.b, clear_color.a);
+        glClearNamedFramebufferfv(0, GL_COLOR, 0, glm::value_ptr(clear_color));
         // painter uses reverse z, so the far plane is at 0
-        glClearDepth(0.0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        constexpr GLfloat clear_depth = 0.0f;
+        glClearNamedFramebufferfv(0, GL_DEPTH, 0, &clear_depth);
 
         app_->draw();
 

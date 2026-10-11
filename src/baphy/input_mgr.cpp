@@ -25,6 +25,8 @@ baphy::InputMgr::InputMgr(InputMgr &&other) noexcept
 
 void baphy::InputMgr::prev_propagate_() {
     mouse.delta = glm::vec2{0, 0};
+    mouse.wheel = glm::vec2{0, 0};
+    mouse.wheel_int = glm::ivec2{0, 0};
     mouse.prev_pos = mouse.pos;
 
     for (const auto &button: mouse.buttons_state | std::views::keys)
@@ -138,4 +140,5 @@ void baphy::InputMgr::mouse_motion_callback_(const MouseMotionEvent &e) {
 
 void baphy::InputMgr::mouse_wheel_callback_(const MouseWheelEvent &e) {
     mouse.wheel += glm::vec2{e.x, e.y};
+    mouse.wheel_int += glm::ivec2{e.integer_x, e.integer_y};
 }

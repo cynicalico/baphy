@@ -12,8 +12,15 @@ class Timer {
 public:
     virtual ~Timer() = default;
 
+    [[nodiscard]] bool is_paused() const { return paused_; }
+    void pause() { paused_ = true; }
+    void resume() { paused_ = false; }
+
     virtual bool update(double dt) = 0;
     virtual bool fire() = 0;
+
+protected:
+    bool paused_{false};
 };
 
 class AfterTimer final : public Timer {
@@ -62,6 +69,11 @@ public:
     template<typename F>
         requires std::constructible_from<detail::EveryTimer::Callback, F>
     ID every(double interval, F &&f);
+
+    [[nodiscard]] bool is_paused(ID id) const;
+    void pause(ID id);
+    void resume(ID id);
+    void toggle(ID id);
 
     void update_(double dt);
 

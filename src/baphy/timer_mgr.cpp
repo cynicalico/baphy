@@ -25,6 +25,25 @@ bool baphy::detail::EveryTimer::fire() {
     return true;
 }
 
+bool baphy::TimerMgr::is_paused(const ID id) const {
+    return timers_.at(id)->is_paused();
+}
+
+void baphy::TimerMgr::pause(const ID id) {
+    timers_.at(id)->pause();
+}
+
+void baphy::TimerMgr::resume(const ID id) {
+    timers_.at(id)->resume();
+}
+
+void baphy::TimerMgr::toggle(const ID id) {
+    if (is_paused(id))
+        resume(id);
+    else
+        pause(id);
+}
+
 void baphy::TimerMgr::update_(double dt) {
     auto active_timers = std::move(timers_);
     timers_.clear();
@@ -34,7 +53,7 @@ void baphy::TimerMgr::update_(double dt) {
         reserved_ids_.insert(id);
 
     for (auto &[id, timer]: active_timers) {
-        if (!timer->update(dt) || timer->fire())
+        if (timer->is_paused() || !timer->update(dt) || timer->fire())
             timers_.emplace(id, std::move(timer));
 
         reserved_ids_.erase(id);
@@ -43,8 +62,9 @@ void baphy::TimerMgr::update_(double dt) {
 
 baphy::TimerMgr::ID baphy::TimerMgr::gen_id_() const {
     do {
-        const auto id = clero::rng(clero::int_range<ID>{0, std::numeric_limits<ID>::max()});
-        if (!timers_.contains(id) && !reserved_ids_.contains(id))
+        if (const auto id = clero::rng(clero::int_range<ID>{0, std::numeric_limits<ID>::max()});
+            !timers_.contains(id) && !reserved_ids_.contains(id)) {
             return id;
+        }
     } while (true);
 }
