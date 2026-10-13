@@ -52,7 +52,7 @@ private:
     std::optional<glm::ivec2> sel_end_{std::nullopt};
     SelectionState sel_state_{SelectionState::None};
     std::optional<glm::ivec2> sel_moving_pos_{std::nullopt};
-    std::unordered_map<glm::ivec2, WireworldRYGB::State> sel_buf_{};
+    ankerl::unordered_dense::map<glm::ivec2, WireworldRYGB::State, IVec2Hash> sel_buf_{};
 
     void draw_ui_();
     void draw_world_();
@@ -65,6 +65,8 @@ private:
     [[nodiscard]] bool is_sel_blocking_input_() const;
     [[nodiscard]] bool is_cell_pos_in_sel_(glm::ivec2 pos) const;
     void fill_sel_buf_();
+    [[nodiscard]] std::pair<glm::ivec2, glm::ivec2> sel_rect_() const;
+    [[nodiscard]] glm::ivec2 sel_mid_() const;
 };
 
 #endif // BAPHY_EXAMPLE_WIREWORLD_WIREWORLD_APP_HPP

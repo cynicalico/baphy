@@ -1,14 +1,20 @@
 #ifndef BAPHY_EXAMPLE_WIREWORLD_WIREWORLD_HPP
 #define BAPHY_EXAMPLE_WIREWORLD_WIREWORLD_HPP
 
-#include <glm/glm.hpp>
-#include <tuple>
-#include <unordered_map>
+// https://lodev.org/ca/wireworldrgb.html
 
-template<>
-struct std::hash<glm::ivec2> {
-    std::size_t operator()(const glm::ivec2 &v) const noexcept {
-        return std::hash<int>{}(v.x) ^ (std::hash<int>{}(v.y) << 1);
+#include <array>
+#include <glm/glm.hpp>
+#include <vector>
+#include "ankerl/unordered_dense.h"
+
+struct IVec2Hash {
+    using is_avalanching = void;
+
+    std::uint64_t operator()(glm::ivec2 v) const noexcept {
+        const auto packed =
+                (static_cast<std::uint64_t>(static_cast<std::uint32_t>(v.x)) << 32) | static_cast<std::uint32_t>(v.y);
+        return ankerl::unordered_dense::hash<std::uint64_t>{}(packed);
     }
 };
 
@@ -38,9 +44,18 @@ public:
     void tick();
 
 private:
-    std::unordered_map<glm::ivec2, State> cells_;
+    ankerl::unordered_dense::map<glm::ivec2, State, IVec2Hash> cells_;
 
-    std::tuple<int, int, int, int> head_counts_(glm::ivec2 pos) const;
+    std::vector<glm::ivec2> heads_;
+    std::vector<glm::ivec2> tails_;
+    bool dirty_{false};
+
+    std::vector<glm::ivec2> next_heads_;
+    ankerl::unordered_dense::map<glm::ivec2, std::array<int, 4>, IVec2Hash> head_counts_;
+
+    void rebuild_active_();
+
+    static bool should_become_head_(State wire, const std::array<int, 4> &counts);
 };
 
 #endif // BAPHY_EXAMPLE_WIREWORLD_WIREWORLD_HPP

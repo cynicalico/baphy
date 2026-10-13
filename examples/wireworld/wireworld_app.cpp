@@ -37,65 +37,6 @@ static const char *state_name(const WireworldRYGB::State s) {
     return m.at(s);
 }
 
-static std::vector<glm::ivec2> bresenham(glm::ivec2 start, glm::ivec2 end) {
-    std::vector<glm::ivec2> points;
-
-    const auto bresenham_low = [&points](const glm::ivec2 p0, const glm::ivec2 p1) {
-        const int dx = p1.x - p0.x;
-        int dy = p1.y - p0.y;
-        int yi = 1;
-        if (dy < 0) {
-            yi = -1;
-            dy = -dy;
-        }
-        int D = 2 * dy - dx;
-        int y = p0.y;
-
-        for (int x = p0.x; x <= p1.x; x++) {
-            points.emplace_back(x, y);
-            if (D > 0) {
-                y += yi;
-                D += 2 * (dy - dx);
-            } else {
-                D += 2 * dy;
-            }
-        }
-    };
-
-    const auto bresenham_high = [&points](const glm::ivec2 p0, const glm::ivec2 p1) {
-        int dx = p1.x - p0.x;
-        const int dy = p1.y - p0.y;
-        int xi = 1;
-        if (dx < 0) {
-            xi = -1;
-            dx = -dx;
-        }
-        int D = 2 * dx - dy;
-        int x = p0.x;
-
-        for (int y = p0.y; y <= p1.y; y++) {
-            points.emplace_back(x, y);
-            if (D > 0) {
-                x += xi;
-                D += 2 * (dx - dy);
-            } else {
-                D += 2 * dx;
-            }
-        }
-    };
-
-    if (std::abs(end.y - start.y) < std::abs(end.x - start.x)) {
-        if (start.x > end.x)
-            std::swap(start, end);
-        bresenham_low(start, end);
-    } else {
-        if (start.y > end.y)
-            std::swap(start, end);
-        bresenham_high(start, end);
-    }
-    return points;
-}
-
 WireworldApp::WireworldApp(baphy::Runner &runner)
     : Application(runner),
       window_(*runner.window),
@@ -144,7 +85,7 @@ void WireworldApp::update(double) {
         }
         if (pen_down_) {
             if (const auto curr_cell_pos = cell_mouse_pos_(); curr_cell_pos != pen_pos_) {
-                for (const auto &point: bresenham(pen_pos_, curr_cell_pos))
+                for (const auto &point: baphy::bresenham(pen_pos_, curr_cell_pos))
                     world_.set(point, pen_erasing_ ? WireworldRYGB::State::Empty : pen_content_);
                 pen_pos_ = curr_cell_pos;
             }
@@ -229,13 +170,14 @@ void WireworldApp::draw_ui_() {
 }
 
 void WireworldApp::draw_world_() {
+    const bool moving = sel_state_ == SelectionState::Moving;
+    const bool copying = sel_state_ == SelectionState::Copying;
+
     const auto zoom_f = static_cast<float>(zoom_);
 
     const auto view_size = glm::vec2(window_.w(), window_.h()) / zoom_f;
     const glm::ivec2 min = glm::floor(viewport_pos_);
     const glm::ivec2 max = glm::ceil(viewport_pos_ + view_size);
-
-    const bool moving = sel_state_ == SelectionState::Moving;
 
     for (int y = min.y; y < max.y; ++y) {
         for (int x = min.x; x < max.x; ++x) {
@@ -247,9 +189,15 @@ void WireworldApp::draw_world_() {
         }
     }
 
-    const glm::ivec2 offset = moving ? cell_mouse_pos_() - *sel_moving_pos_ : glm::ivec2{0, 0};
+    glm::ivec2 offset;
+    if (moving)
+        offset = cell_mouse_pos_() - *sel_moving_pos_;
+    else if (copying)
+        offset = cell_mouse_pos_() - sel_mid_();
+    else
+        offset = glm::ivec2{0, 0};
 
-    if (moving) {
+    if (moving || copying) {
         for (const auto &[pos, state]: sel_buf_) {
             painter_.fill_square(
                     glm::round((glm::vec2(pos + offset) - viewport_pos_) * zoom_f), zoom_f, state_color(state));
@@ -257,11 +205,12 @@ void WireworldApp::draw_world_() {
     }
 
     if (sel_state_ != SelectionState::None) {
-        const glm::vec2 sel_min = glm::min(*sel_start_, *sel_end_) + offset;
-        const glm::vec2 sel_max = glm::max(*sel_start_, *sel_end_) + 1 + offset;
+        auto [sel_min, sel_max] = sel_rect_();
+        sel_min += offset;
+        sel_max += offset;
 
-        const auto top_left = glm::round((sel_min - viewport_pos_) * zoom_f);
-        const auto bottom_right = glm::round((sel_max - viewport_pos_) * zoom_f);
+        const auto top_left = glm::round((glm::vec2(sel_min) - viewport_pos_) * zoom_f);
+        const auto bottom_right = glm::round((glm::vec2(sel_max) - viewport_pos_) * zoom_f);
         painter_.stroke_rect(top_left, bottom_right - top_left, 1.0, baphy::rgb(255, 255, 255));
     }
 }
@@ -319,6 +268,15 @@ void WireworldApp::tick_sel_state_machine_() {
                 sel_moving_pos_ = cell_mouse_pos_();
                 sel_state_ = SelectionState::Moving;
                 processing = true;
+            } else if (input_.key_pressed(baphy::Key::C)) {
+                sel_state_ = SelectionState::Copying;
+                processing = true;
+            } else if (input_.key_pressed(baphy::Key::Delete)) {
+                const auto [sel_min, sel_max] = sel_rect_();
+                for (int y = sel_min.y; y < sel_max.y; ++y)
+                    for (int x = sel_min.x; x < sel_max.x; ++x)
+                        world_.set({x, y}, WireworldRYGB::State::Empty);
+                reset_selection_();
             }
             break;
         case SelectionState::Moving:
@@ -339,7 +297,13 @@ void WireworldApp::tick_sel_state_machine_() {
             }
             break;
         case SelectionState::Copying:
-            // TODO
+            processing = false;
+            fill_sel_buf_();
+            if (input_.button_pressed(baphy::Button::Left)) {
+                const glm::ivec2 offset = cell_mouse_pos_() - sel_mid_();
+                for (const auto &[pos, state]: sel_buf_)
+                    world_.set(pos + offset, state);
+            }
             break;
         }
     } while (processing);
@@ -353,8 +317,7 @@ bool WireworldApp::is_cell_pos_in_sel_(const glm::ivec2 pos) const {
     if (sel_state_ == SelectionState::None)
         return false;
 
-    const glm::ivec2 sel_min = glm::min(*sel_start_, *sel_end_);
-    const glm::ivec2 sel_max = glm::max(*sel_start_, *sel_end_) + 1;
+    const auto [sel_min, sel_max] = sel_rect_();
 
     return pos.x >= sel_min.x && pos.x < sel_max.x && pos.y >= sel_min.y && pos.y < sel_max.y;
 }
@@ -362,8 +325,7 @@ bool WireworldApp::is_cell_pos_in_sel_(const glm::ivec2 pos) const {
 void WireworldApp::fill_sel_buf_() {
     sel_buf_.clear();
 
-    const glm::ivec2 sel_min = glm::min(*sel_start_, *sel_end_);
-    const glm::ivec2 sel_max = glm::max(*sel_start_, *sel_end_) + 1;
+    const auto [sel_min, sel_max] = sel_rect_();
 
     for (int x = sel_min.x; x < sel_max.x; ++x) {
         for (int y = sel_min.y; y < sel_max.y; ++y) {
@@ -372,4 +334,14 @@ void WireworldApp::fill_sel_buf_() {
                 sel_buf_[pos] = state;
         }
     }
+}
+
+std::pair<glm::ivec2, glm::ivec2> WireworldApp::sel_rect_() const {
+    return {glm::min(*sel_start_, *sel_end_), glm::max(*sel_start_, *sel_end_) + 1};
+}
+
+glm::ivec2 WireworldApp::sel_mid_() const {
+    const auto [sel_min, sel_max] = sel_rect_();
+
+    return (sel_min + sel_max) / 2;
 }

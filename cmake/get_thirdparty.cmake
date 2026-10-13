@@ -7,6 +7,7 @@ CPMAddPackage(URI "gh:cynicalico/nexus#3c3515943e23d39d6a0ba9239c3e38e4724509e5"
 #CPMAddPackage("gh:kcat/openal-soft#1.25.2")
 CPMAddPackage("gh:libsdl-org/SDL#release-3.4.16")
 CPMAddPackage(URI "gh:gabime/spdlog@1.17.0" OPTIONS "SPDLOG_FMT_EXTERNAL ON")
+CPMAddPackage("gh:martinus/unordered_dense@5.3.2")
 
 include("${CMAKE_CURRENT_LIST_DIR}/get_glad.cmake")
 include("${CMAKE_CURRENT_LIST_DIR}/get_imgui.cmake")
@@ -28,4 +29,5 @@ target_link_libraries(baphy_thirdparty INTERFACE
         SDL3::SDL3
         spdlog::spdlog
         stb::stb
+        unordered_dense::unordered_dense
 )
